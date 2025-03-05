@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Analysis</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul id="navbar">
+                <li><a href="index.html">Heart Data</a></li>
+                <li><a href="temperature.html" class="active">Temperature</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <h1>Temperature Analysis</h1>
+    <p>Using this page to test out temperature visualization (Having some confusion with the dataset's body temperature values).</p>
+
+    <label for="studentTempSelect">Select Student:</label>
+    <select id="studentTempSelect"></select>
+
+    <div id="visual-container">
+        <svg id="thermometer" width="150" height="350">
+            <!-- Thermometer outline -->
+            <rect x="60" y="50" width="30" height="250" fill="lightgray" stroke="black" stroke-width="2"></rect>
+            <!-- Mercury (temperature level) -->
+            <rect id="mercury" x="60" y="300" width="30" height="0" fill="blue"></rect>
+            <!-- Temperature labels -->
+            <text id="temp-label" x="100" y="40" font-size="16px" font-weight="bold"></text>
+            
+            <!-- Tick marks for temperature values -->
+            <g id="tick-marks"></g>
+        </svg>
+        <div id="timer-container">
+            <div id="timer-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll("#navbar a").forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add("active");
+            }
+        });
+
+        const minTemp = 18, maxTemp = 32; // Adjusted temperature range
+        const thermometerHeight = 250; // Height of mercury in pixels
+
+        d3.csv("merged_midterm1_data.csv").then(data => {
+            data.forEach(d => {
+                d.Minute = +d.Minute;
+                d.TEMP = +d.TEMP;
+            });
+
+            let students = Array.from(new Set(data.map(d => d.Student)));
+
+            d3.select("#studentTempSelect")
+                .selectAll("option")
+                .data(students)
+                .enter()
+                .append("option")
+                .attr("value", d => d)
+                .text(d => d);
+
+            let currentStudent = students[0];
+            updateTemperatureVisualization(currentStudent);
+
+            d3.select("#studentTempSelect").on("change", function() {
+                currentStudent = this.value;
+                updateTemperatureVisualization(currentStudent);
+            });
+
+            function updateTemperatureVisualization(student) {
+                let studentData = data.filter(d => d.Student === student);
+
+                let timeIndex = 0;
+                function step() {
+                    if (timeIndex < studentData.length) {
+                        let currentTemp = studentData[timeIndex].TEMP;
+
+                        // Normalize temp to fit within the thermometer height
+                        let tempNormalized = Math.max(minTemp, Math.min(maxTemp, currentTemp));
+                        let mercuryHeight = ((tempNormalized - minTemp) / (maxTemp - minTemp)) * thermometerHeight;
+
+                        let color = d3.interpolateCool(1 - (tempNormalized - minTemp) / (maxTemp - minTemp));
+
+                        d3.select("#mercury")
+                            .transition().duration(100)
+                            .attr("y", 300 - mercuryHeight) // Move up
+                            .attr("height", mercuryHeight)
+                            .attr("fill", color);
+
+                        d3.select("#temp-label")
+                            .text(tempNormalized.toFixed(1) + "°C");
+
+                        let progress = (studentData[timeIndex].Minute / 90) * 100;
+                        d3.select("#timer-bar")
+                            .style("width", progress + "%");
+
+                        timeIndex++;
+                        setTimeout(step, 100); // Faster updates
+                    }
+                }
+                step();
+            }
+
+            // Add tick marks to the thermometer
+            const tickSpacing = thermometerHeight / (maxTemp - minTemp);
+            const tickGroup = d3.select("#tick-marks");
+
+            for (let t = minTemp; t <= maxTemp; t += 2) {
+                let yPos = 300 - ((t - minTemp) / (maxTemp - minTemp)) * thermometerHeight;
+                
+                tickGroup.append("line")
+                    .attr("x1", 55).attr("x2", 60)
+                    .attr("y1", yPos).attr("y2", yPos)
+                    .attr("stroke", "black").attr("stroke-width", 1);
+
+                tickGroup.append("text")
+                    .attr("x", 40).attr("y", yPos + 4)
+                    .attr("font-size", "12px")
+                    .text(t + "°C");
+            }
+        });
+    </script>
+
+    <style>
+        #visual-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        #timer-container {
+            width: 300px;
+            height: 20px;
+            background: lightgray;
+            margin-top: 10px;
+            position: relative;
+        }
+        #timer-bar {
+            height: 100%;
+            width: 0;
+            background: blue;
+            transition: width 0.1s linear;
+        }
+    </style>
+
+</body>
+</html>

@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <header>
+        <nav>
+            <ul id="navbar">
+                <li><a href="index.html">Heart Data</a></li>
+                <li><a href="temperature.html">Temperature</a></li>
+            </ul>
+        </nav>
+    </header>    
     <h1>Student Stress Level Visualization</h1>
     
     <label for="examSelect">Select Exam:</label>
@@ -156,5 +164,13 @@
         
         updateChart("midterm1");
     </script>
+    <script>
+        document.querySelectorAll("#navbar a").forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add("active");
+            }
+        });
+    </script>
+    
 </body>
 </html>

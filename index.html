@@ -1,11 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heart Data Visualization</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Data Visualization</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Team Figi</h1>
+    <h1>Student Stress Level Visualization</h1>
+    
+    <!-- Dropdown to select exam -->
+    <label for="examSelect">Select Exam:</label>
+    <select id="examSelect">
+        <option value="midterm1">Midterm 1</option>
+        <option value="midterm2">Midterm 2</option>
+        <option value="final">Final Exam</option>
+    </select>
+    
+    <!-- Dropdown to select student -->
+    <label for="studentSelect">Select Student:</label>
+    <select id="studentSelect">
+    </select>
+    
+    <div id="chart-container">
+        <svg width="800" height="400"></svg>
+    </div>
+    
+    <!-- Legend -->
+    <div id="legend"></div>
+    
+    <script>
+        const margin = { top: 20, right: 50, bottom: 50, left: 50 };
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        
+        const svg = d3.select("svg")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+        const xScale = d3.scaleLinear().range([0, width]);
+        const yScale = d3.scaleLinear().range([height, 0]);
+        
+        const xAxis = svg.append("g").attr("transform", `translate(0,${height})`);
+        const yAxis = svg.append("g");
+        
+        const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+        
+        let allData = [];
+        let students = [];
+        
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("background", "white")
+            .style("border", "1px solid #ccc")
+            .style("padding", "5px")
+            .style("display", "none");
+        
+        function updateChart(exam, selectedStudent) {
+            d3.csv(`merged_${exam}_data.csv`).then(data => {
+                data.forEach(d => {
+                    d.Minute = +d.Minute;
+                    d.HR = +d.HR;
+                });
+                
+                allData = data;
+                students = Array.from(new Set(data.map(d => d.Student)));
+                colorScale.domain(students);
+                
+                d3.select("#studentSelect").selectAll("option").remove();
+                d3.select("#studentSelect")
+                    .selectAll("option")
+                    .data(students)
+                    .enter()
+                    .append("option")
+                    .attr("value", d => d)
+                    .text(d => d);
+                
+                drawChart(students[0]);
+            });
+        }
+        
+        function drawChart(selectedStudent) {
+            let studentData = allData.filter(d => d.Student === selectedStudent);
+            let avgData = d3.rollup(allData, v => d3.mean(v, d => d.HR), d => d.Minute);
+            let avgFormattedData = Array.from(avgData, ([Minute, HR]) => ({ Minute, HR }));
+            
+            xScale.domain(d3.extent(allData, d => d.Minute));
+            yScale.domain([d3.min(allData, d => d.HR) * 0.9, d3.max(allData, d => d.HR) * 1.1]);
+            
+            xAxis.call(d3.axisBottom(xScale).ticks(10));
+            yAxis.call(d3.axisLeft(yScale));
+            
+            svg.selectAll(".line").remove();
+            svg.selectAll(".dot").remove();
+            
+            const line = d3.line()
+                .x(d => xScale(d.Minute))
+                .y(d => yScale(d.HR))
+                .curve(d3.curveMonotoneX);
+            
+            svg.append("path")
+                .datum(avgFormattedData)
+                .attr("class", "line avg-line")
+                .attr("fill", "none")
+                .attr("stroke", "black")
+                .attr("stroke-width", 2)
+                .attr("opacity", 0.8)
+                .attr("d", line);
+                
+            svg.append("path")
+                .datum(studentData)
+                .attr("class", "line student-line")
+                .attr("fill", "none")
+                .attr("stroke", colorScale(selectedStudent))
+                .attr("stroke-width", 2)
+                .attr("opacity", 0.8)
+                .attr("d", line);
+            
+            svg.selectAll(".dot")
+                .data(studentData)
+                .enter().append("circle")
+                .attr("class", "dot")
+                .attr("cx", d => xScale(d.Minute))
+                .attr("cy", d => yScale(d.HR))
+                .attr("r", 4)
+                .attr("fill", colorScale(selectedStudent))
+                .on("mouseover", (event, d) => {
+                    tooltip.style("display", "block")
+                        .html(`Minute: ${d.Minute}<br>HR: ${d.HR}`)
+                        .style("left", `${event.pageX + 5}px`)
+                        .style("top", `${event.pageY - 30}px`);
+                })
+                .on("mouseout", () => tooltip.style("display", "none"));
+            
+            updateLegend(selectedStudent);
+        }
+        
+        function updateLegend(selectedStudent) {
+            d3.select("#legend").html("");
+            const legend = d3.select("#legend");
+            
+            legend.append("div").style("display", "flex").style("align-items", "center")
+                .html(`<div style='width:20px; height:10px; background:black; margin-right:5px;'></div> <span>Average HR</span>`);
+            
+            legend.append("div").style("display", "flex").style("align-items", "center")
+                .html(`<div style='width:20px; height:10px; background:${colorScale(selectedStudent)}; margin-right:5px;'></div> <span>Student: ${selectedStudent}</span>`);
+        }
+        
+        d3.select("#examSelect").on("change", function() {
+            updateChart(this.value, students[0]);
+        });
+        
+        d3.select("#studentSelect").on("change", function() {
+            drawChart(this.value);
+        });
+        
+        updateChart("midterm1", "all");
+    </script>
 </body>
 </html>

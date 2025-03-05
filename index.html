@@ -10,7 +10,6 @@
 <body>
     <h1>Student Stress Level Visualization</h1>
     
-    <!-- Dropdown to select exam -->
     <label for="examSelect">Select Exam:</label>
     <select id="examSelect">
         <option value="midterm1">Midterm 1</option>
@@ -18,16 +17,13 @@
         <option value="final">Final Exam</option>
     </select>
     
-    <!-- Dropdown to select student -->
     <label for="studentSelect">Select Student:</label>
-    <select id="studentSelect">
-    </select>
+    <select id="studentSelect"></select>
     
     <div id="chart-container">
         <svg width="800" height="400"></svg>
     </div>
     
-    <!-- Legend -->
     <div id="legend"></div>
     
     <script>
@@ -58,8 +54,9 @@
             .style("padding", "5px")
             .style("display", "none");
         
-        function updateChart(exam, selectedStudent) {
-            d3.csv(`merged_${exam}_data.csv`).then(data => {
+        function updateChart(exam) {
+            const fileName = exam === "final" ? "merged_final_exam_data.csv" : `merged_${exam}_data.csv`;
+            d3.csv(fileName).then(data => {
                 data.forEach(d => {
                     d.Minute = +d.Minute;
                     d.HR = +d.HR;
@@ -109,7 +106,7 @@
                 .attr("stroke-width", 2)
                 .attr("opacity", 0.8)
                 .attr("d", line);
-                
+            
             svg.append("path")
                 .datum(studentData)
                 .attr("class", "line student-line")
@@ -150,14 +147,14 @@
         }
         
         d3.select("#examSelect").on("change", function() {
-            updateChart(this.value, students[0]);
+            updateChart(this.value);
         });
         
         d3.select("#studentSelect").on("change", function() {
             drawChart(this.value);
         });
         
-        updateChart("midterm1", "all");
+        updateChart("midterm1");
     </script>
 </body>
 </html>

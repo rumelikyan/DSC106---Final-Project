@@ -30,16 +30,18 @@
         <p>Scroll down to explore how different physiological signals change during exams.</p>
     </section>
 
+
     <!-- Heart Rate Visualization Section -->
     <section id="heart-rate">
         <h2>Heart Rate Changes During the Exam</h2>
         <p>Select which test in which you want to see Heart Rate data.</p>
         
-        <div id="filter-container">
+        <div class="exam-buttons">
             <button onclick="loadExamData('merged_midterm1_data.csv')">Midterm 1</button>
             <button onclick="loadExamData('merged_midterm2_data.csv')">Midterm 2</button>
             <button onclick="loadExamData('merged_final_exam_data.csv')">Final Exam</button>
         </div>
+        
         
 
         <div id="heart-container">
@@ -50,7 +52,37 @@
         <div id="chart-container">
             <svg id="heart-chart" width="600" height="300"></svg>
         </div>
+
+        <div class="control-buttons">
+            <button id="restart-vis-btn" style="display: block;">Restart Visualization</button>
+            <button id="stop-vis-btn" style="display: block;">Stop Visualization</button>
+        </div>
+        
+        
+        
     </section>
+
+    <!-- Exam Performance vs. Average Heart Rate -->
+    <section id="exam-performance">
+        <h2>Exam Performance vs. Average Heart Rate</h2>
+        <p>Hover over points to see student details. Compare different exams.</p>
+
+        <div id="scatterplots-container">
+            <div class="scatterplot">
+                <h3>Midterm 1</h3>
+                <svg id="scatter-midterm1" width="400" height="300"></svg>
+            </div>
+            <div class="scatterplot">
+                <h3>Midterm 2</h3>
+                <svg id="scatter-midterm2" width="400" height="300"></svg>
+            </div>
+            <div class="scatterplot">
+                <h3>Final Exam</h3>
+                <svg id="scatter-final" width="400" height="300"></svg>
+            </div>
+        </div>
+    </section>
+
 
     <script>
         document.querySelectorAll("#navbar a").forEach(link => {
@@ -145,12 +177,13 @@
     
                 let m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
                 let b = (sumY - m * sumX) / n;
-    
+                let maxGrade = Math.max(...grades);
                 let predictedGrade = Math.round(m * bpm + b);
-                let predictedPercentage = ((predictedGrade / 200) * 100).toFixed(1) + "%";
+                let scaledPercentage = ((predictedGrade / maxGrade) * 100).toFixed(1);
+                if (scaledPercentage > 100) scaledPercentage = 100;
     
                 document.getElementById("exam-score-prediction").style.display = "block";
-                document.getElementById("exam-score-prediction").textContent = `Predicted Exam Score: ${predictedPercentage}`;
+                document.getElementById("exam-score-prediction").textContent = `Predicted Exam Score: ${scaledPercentage}%`;
     
                 document.getElementById("restart-test-btn").style.display = "block";
             });
@@ -163,68 +196,66 @@
             });
         }
 
-        function updateHeartVisualization() {
-        d3.select("#heart-container").html(""); // Clear previous hearts
+        let visualizationTimeout; // Global variable to store timeout ID
 
-        let students = Array.from(new Set(data.map(d => d.Student))); // Get unique students
+function updateHeartVisualization() {
+    clearTimeout(visualizationTimeout); // Clear any existing timeouts
+    d3.select("#heart-container").html(""); // Clear previous hearts
 
-        students.forEach(student => {
-            let studentDiv = d3.select("#heart-container")
-                .append("div")
-                .attr("class", "student-heart");
+    let students = Array.from(new Set(data.map(d => d.Student))); // Get unique students
 
-            // Heart image
-            studentDiv.append("img")
-                .attr("src", "images/clarity.png")
-                .attr("alt", `Heart - ${student}`)
-                .attr("class", "heart-img")
-                .attr("id", `heart-${student}`);
+    students.forEach(student => {
+        let studentDiv = d3.select("#heart-container")
+            .append("div")
+            .attr("class", "student-heart");
 
-            // Heart rate display
-            studentDiv.append("p")
-                .attr("id", `heart-rate-display-${student}`)
-                .attr("class", "heart-rate-display")
-                .text(`${student}: -- BPM`);
+        studentDiv.append("img")
+            .attr("src", "images/clarity.png")
+            .attr("alt", `Heart - ${student}`)
+            .attr("class", "heart-img")
+            .attr("id", `heart-${student}`);
 
-            // Chart container below heart
-            let chartContainer = studentDiv.append("div")
-                .attr("class", "student-chart-container");
+        studentDiv.append("p")
+            .attr("id", `heart-rate-display-${student}`)
+            .attr("class", "heart-rate-display")
+            .text(`${student}: -- BPM`);
 
-            chartContainer.append("svg")
-                .attr("id", `chart-${student}`)
-                .attr("width", 120)
-                .attr("height", 80);
-        });
+        let chartContainer = studentDiv.append("div")
+            .attr("class", "student-chart-container");
 
-        let timeIndex = 0;
-        function step() {
-            if (timeIndex < data.length) {
-                students.forEach(student => {
-                    let studentData = data.filter(d => d.Student === student);
-                    if (timeIndex < studentData.length) {
-                        let currentHR = studentData[timeIndex].HR;
-                        let bpmText = `${student}: ${Math.round(currentHR)} BPM`;
+        chartContainer.append("svg")
+            .attr("id", `chart-${student}`)
+            .attr("width", 120)
+            .attr("height", 80);
+    });
 
-                        // Animate heart beat
-                        d3.select(`#heart-${student}`)
-                            .transition().duration(60000 / currentHR / 2)
-                            .style("transform", "scale(1.2)")
-                            .transition().duration(60000 / currentHR / 2)
-                            .style("transform", "scale(1)");
+    let timeIndex = 0;
+    function step() {
+        if (timeIndex < data.length) {
+            students.forEach(student => {
+                let studentData = data.filter(d => d.Student === student);
+                if (timeIndex < studentData.length) {
+                    let currentHR = studentData[timeIndex].HR;
+                    let bpmText = `${student}: ${Math.round(currentHR)} BPM`;
 
-                        d3.select(`#heart-rate-display-${student}`).text(bpmText);
+                    d3.select(`#heart-${student}`)
+                        .transition().duration(60000 / currentHR / 2)
+                        .style("transform", "scale(1.2)")
+                        .transition().duration(60000 / currentHR / 2)
+                        .style("transform", "scale(1)");
 
-                        // Update individual student chart
-                        updateStudentChart(student, studentData.slice(0, timeIndex + 1));
-                    }
-                });
+                    d3.select(`#heart-rate-display-${student}`).text(bpmText);
+                    updateStudentChart(student, studentData.slice(0, timeIndex + 1));
+                }
+            });
 
-                timeIndex++;
-                setTimeout(step, 500);
-            }
+            timeIndex++;
+            visualizationTimeout = setTimeout(step, 500); // Store timeout ID
         }
-        step();
     }
+    step();
+}
+
 
     function updateStudentChart(student, data) {
     const svg = d3.select(`#chart-${student}`);
@@ -297,12 +328,164 @@
 
             data = loadedData; // Update global dataset
             updateHeartVisualization();
+
+            // Ensure that the Restart and Stop buttons are visible when a dataset is selected
+            document.getElementById("restart-vis-btn").style.display = "block";
+            document.getElementById("stop-vis-btn").style.display = "block";
         });
     }
 
-    document.getElementById("restart-vis-btn").addEventListener("click", function () {
-        updateHeartVisualization();
+
+    const restartVisBtn = document.getElementById("restart-vis-btn");
+    if (restartVisBtn) {
+        restartVisBtn.addEventListener("click", function () {
+            clearTimeout(visualizationTimeout); // Stop previous iterations
+            updateHeartVisualization(); // Reset visualization
+        });
+}
+        const stopVisBtn = document.getElementById("stop-vis-btn");
+        if (stopVisBtn) {
+            stopVisBtn.addEventListener("click", function () {
+                clearTimeout(visualizationTimeout); // Stop all running visualization updates
+
+                // Reset the heart container to its original state
+                d3.select("#heart-container").html(`
+                    <p>Select a dataset to begin visualization.</p>
+                `);
+
+                // Reset the chart container (keep it, but empty it)
+                d3.select("#chart-container").html(`
+                    <svg id="heart-chart" width="600" height="300"></svg>
+                `);
+
+                // Hide any displayed results or values
+                document.getElementById("heart-rate-result").style.display = "none";
+                document.getElementById("exam-score-prediction").style.display = "none";
+
+                // Show the start button again
+                document.getElementById("start-test-btn").style.display = "block";
+                
+                // Hide restart and stop buttons
+                document.getElementById("restart-vis-btn").style.display = "none";
+                document.getElementById("stop-vis-btn").style.display = "none";
+
+                // Reset the global visualizationTimeout variable
+                visualizationTimeout = null;
+            });
+
+}
+
+
+
+
+
+    function drawScatterPlot(exam, csvFile, containerId) {
+    d3.csv(csvFile).then(data => {
+        // Compute average HR per student
+        let studentData = d3.rollups(
+            data,
+            v => ({
+                avgHR: d3.mean(v, d => +d.HR),
+                grade: +v[0].Grade,
+                eda: d3.mean(v, d => +d.EDA),
+                temp: d3.mean(v, d => +d.TEMP)
+            }),
+            d => d.Student
+        ).map(d => ({ 
+            student: d[0], 
+            avgHR: d[1].avgHR, 
+            grade: d[1].grade, 
+            eda: d[1].eda, 
+            temp: d[1].temp 
+        }));
+
+        // Normalize grades based on exam type
+        studentData.forEach(d => {
+            d.grade = (exam === "Final") ? (d.grade / 200) * 100 : (d.grade / 100) * 100;
+        });
+
+        const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+        const width = 300 - margin.left - margin.right;
+        const height = 300 - margin.top - margin.bottom;
+
+        const svg = d3.select(`#${containerId}`)
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // X and Y scales
+        const xScale = d3.scaleLinear()
+            .domain([d3.min(studentData, d => d.avgHR) - 5, d3.max(studentData, d => d.avgHR) + 5])
+            .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, 100]) // Ensure all grades are scaled to 100%
+            .range([height, 0]);
+
+        // Axes
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(5));
+
+        svg.append("g")
+            .call(d3.axisLeft(yScale).ticks(5));
+
+        // Labels
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 10)
+            .style("text-anchor", "middle")
+            .text("Average Heart Rate (BPM)");
+
+        svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -margin.left + 15)
+            .style("text-anchor", "middle")
+            .text("Exam Score (%)");
+
+        // Tooltip Selection
+        const tooltip = d3.select("#tooltip");
+
+        // Scatter points
+        svg.selectAll(".dot")
+            .data(studentData)
+            .enter()
+            .append("circle")
+            .attr("cx", d => xScale(d.avgHR))
+            .attr("cy", d => yScale(d.grade))
+            .attr("r", 5)
+            .style("fill", "steelblue")
+            .on("mouseover", function (event, d) {
+                tooltip.style("display", "block")
+                    .html(`
+                        <strong>Student ${d.student}</strong><br>
+                        Avg HR: ${Math.round(d.avgHR)} BPM<br>
+                        Score: ${Math.round(d.grade)}%<br>
+                    `);
+                d3.select(this).attr("r", 8).style("fill", "red");
+            })
+            .on("mousemove", function (event) {
+                tooltip.style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 20) + "px");
+            })
+            .on("mouseout", function () {
+                tooltip.style("display", "none");
+                d3.select(this).attr("r", 5).style("fill", "steelblue");
+            });
     });
+}
+
+// Load all scatterplots
+drawScatterPlot("Midterm 1", "merged_midterm1_data.csv", "scatter-midterm1");
+drawScatterPlot("Midterm 2", "merged_midterm2_data.csv", "scatter-midterm2");
+drawScatterPlot("Final", "merged_final_exam_data.csv", "scatter-final");
+
+
+
+
 
 </script>
 
@@ -352,7 +535,19 @@
         height: 80px;
     }
 </style>
-<button id="restart-vis-btn" style="display: block;">Restart Visualization</button>
+
+
+<div id="tooltip" style="
+    position: absolute; 
+    display: none; 
+    background: white; 
+    border: 1px solid black; 
+    padding: 5px; 
+    font-size: 12px;
+    pointer-events: none;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;">
+</div>
 
 </body>
 </html>

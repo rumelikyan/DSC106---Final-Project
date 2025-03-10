@@ -32,36 +32,43 @@ nav {
 }
 
 #heart-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(200px, 1fr)); /* Ensures consistent sizing */
+    gap: 60px; /* Space between items */
+    justify-items: center;
+    align-items: center;
 }
 
 .student-heart {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 120px; /* Adjust width for fitting */
-}
-
-.heart-img {
-    width: 60px; /* Smaller heart */
-    height: auto;
-    transition: transform 0.2s ease-in-out;
-}
-
-.heart-rate-display {
-    font-size: 14px;
-    margin-top: 5px;
+    width: 880px;
+    margin: 10px;
+    justify-content: center;
     text-align: center;
 }
 
-.student-chart-container {
-    width: 120px;
-    height: 80px;
+.heart-img {
+    width: 200px;  /* Increase heart size */
+    height: auto;
 }
+
+
+.heart-rate-display {
+    font-size: 64px; /* 4x bigger */
+    margin-top: 5px;
+    font-weight: bold;
+    text-align: center;
+}
+
+
+.student-chart-container {
+    width: 180px;
+    height: 120px; /* Slightly larger */
+}
+
+
 
 
 #heart-rate-display {

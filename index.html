@@ -203,7 +203,7 @@
                     let studentData = data.filter(d => d.Student === student);
                     if (timeIndex < studentData.length) {
                         let currentHR = studentData[timeIndex].HR;
-                        let bpmText = `${student}: ${currentHR} BPM`;
+                        let bpmText = `${student}: ${Math.round(currentHR)} BPM`;
 
                         // Animate heart beat
                         d3.select(`#heart-${student}`)
@@ -227,33 +227,66 @@
     }
 
     function updateStudentChart(student, data) {
-        const svg = d3.select(`#chart-${student}`);
-        svg.selectAll("*").remove(); // Clear previous chart
+    const svg = d3.select(`#chart-${student}`);
+    svg.selectAll("*").remove(); // Clear previous chart
 
-        const width = 120;
-        const height = 80;
-        const margin = { top: 5, right: 5, bottom: 5, left: 5 };
+    const width = 180;
+    const height = 100;
+    const margin = { top: 10, right: 10, bottom: 20, left: 30 };
 
-        const xScale = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.Minute))
-            .range([margin.left, width - margin.right]);
+    const xScale = d3.scaleLinear()
+        .domain(d3.extent(data, d => d.Minute))
+        .range([margin.left, width - margin.right]);
 
-        const yScale = d3.scaleLinear()
-            .domain([d3.min(data, d => d.HR) * 0.9, d3.max(data, d => d.HR) * 1.1])
-            .range([height - margin.bottom, margin.top]);
+    const yScale = d3.scaleLinear()
+        .domain([40, 200]) // Fixed Y-Axis from 80 to 200 BPM
+        .range([height, 0]);
 
-        const line = d3.line()
-            .x(d => xScale(d.Minute))
-            .y(d => yScale(d.HR))
-            .curve(d3.curveMonotoneX);
 
-        svg.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "red")
-            .attr("stroke-width", 1.5)
-            .attr("d", line);
-    }
+    const line = d3.line()
+        .x(d => xScale(d.Minute))
+        .y(d => yScale(d.HR))
+        .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
+
+    // X-axis (Minutes)
+    svg.append("g")
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(d3.axisBottom(xScale).ticks(5));
+
+    // Y-axis (BPM)
+    svg.append("g")
+        .attr("transform", `translate(${margin.left}, 0)`)
+        .call(d3.axisLeft(yScale).ticks(5));
+
+    // Axis labels
+    // X-axis Label (Time)
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + 30)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .attr("fill", "#333")
+        .text("Time (Minutes)");
+
+    // Y-axis Label (Heart Rate)
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left + 10)
+        .attr("x", 0 - (height / 2))
+        .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .attr("fill", "#333")
+        .text("Heart Rate (BPM)");
+
+}
+
 
     function loadExamData(filename) {
         d3.csv(filename).then(loadedData => {

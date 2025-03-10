@@ -3,175 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heart Data Visualization</title>
+    <title>Exploring Student Stress During Exams</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <ul id="navbar">
-                <li><a href="index.html" class="active">Heart Data</a></li>
-                <li><a href="temperature.html">Temperature</a></li>
-                <li><a href="writeup.html">Write-Up</a></li>
-            </ul>
-        </nav>
-    </header>    
-    <h1>Student Stress Level Visualization</h1>
+
+
+    <!-- Introduction Section (Hook) -->
+    <section id="intro">
+        <h1>How Do Students' Bodies React to Exam Stress?</h1>
+        <p>
+            Exams are stressful, but how does that stress show up in our bodies? 
+            Using real physiological data from students during exams, we explore 
+            how heart rate, sweat levels, and blood flow change under pressure.
+        </p>
+        <button id="start-btn">Start Exploring</button>
+    </section>
+
+    <!-- Placeholder for Visualizations (To be built in later steps) -->
+    <section id="visualizations">
+        <h2>Understanding Physiological Stress Responses</h2>
+        <p>Scroll down to explore how different physiological signals change during exams.</p>
+    </section>
+
+    <section id="heart-rate">
+        <h2>Heart Rate Changes During the Exam</h2>
+        <p>Select a student to see how their heart rate fluctuated over time.</p>
+        
+        <label for="studentSelect">Select Student:</label>
+        <select id="studentSelect"></select>
     
-    <label for="examSelect">Select Exam:</label>
-    <select id="examSelect">
-        <option value="midterm1">Midterm 1</option>
-        <option value="midterm2">Midterm 2</option>
-        <option value="final">Final Exam</option>
-    </select>
+        <div id="heart-container">
+            <svg id="heart-svg" width="150" height="150" viewBox="0 0 100 100">
+                <path id="heart" d="M50 85 C80 60, 90 30, 50 15 C10 30, 20 60, 50 85 Z" 
+                    fill="red" stroke="black" stroke-width="2"></path>
+            </svg>
+            <p id="heart-rate-display">Heart Rate: -- BPM</p>
+        </div>
     
-    <label for="studentSelect">Select Student:</label>
-    <select id="studentSelect"></select>
+        <div id="chart-container">
+            <svg id="heart-chart" width="600" height="300"></svg>
+        </div>
+    </section>
     
-    <div id="chart-container">
-        <svg width="800" height="400"></svg>
-    </div>
-    
-    <div id="legend"></div>
-    
-    <script>
-        const margin = { top: 20, right: 50, bottom: 50, left: 50 };
-        const width = 800 - margin.left - margin.right;
-        const height = 400 - margin.top - margin.bottom;
-        
-        const svg = d3.select("svg")
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-        
-        const xScale = d3.scaleLinear().range([0, width]);
-        const yScale = d3.scaleLinear().range([height, 0]);
-        
-        const xAxis = svg.append("g").attr("transform", `translate(0,${height})`);
-        const yAxis = svg.append("g");
-        
-        const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-        
-        let allData = [];
-        let students = [];
-        
-        const tooltip = d3.select("body").append("div")
-            .attr("class", "tooltip")
-            .style("position", "absolute")
-            .style("background", "white")
-            .style("border", "1px solid #ccc")
-            .style("padding", "5px")
-            .style("display", "none");
-        
-        function updateChart(exam) {
-            const fileName = exam === "final" ? "merged_final_exam_data.csv" : `merged_${exam}_data.csv`;
-            d3.csv(fileName).then(data => {
-                data.forEach(d => {
-                    d.Minute = +d.Minute;
-                    d.HR = +d.HR;
-                });
-                
-                allData = data;
-                students = Array.from(new Set(data.map(d => d.Student)));
-                colorScale.domain(students);
-                
-                d3.select("#studentSelect").selectAll("option").remove();
-                d3.select("#studentSelect")
-                    .selectAll("option")
-                    .data(students)
-                    .enter()
-                    .append("option")
-                    .attr("value", d => d)
-                    .text(d => d);
-                
-                drawChart(students[0]);
-            });
-        }
-        
-        function drawChart(selectedStudent) {
-            let studentData = allData.filter(d => d.Student === selectedStudent);
-            let avgData = d3.rollup(allData, v => d3.mean(v, d => d.HR), d => d.Minute);
-            let avgFormattedData = Array.from(avgData, ([Minute, HR]) => ({ Minute, HR }));
-            
-            xScale.domain(d3.extent(allData, d => d.Minute));
-            yScale.domain([d3.min(allData, d => d.HR) * 0.9, d3.max(allData, d => d.HR) * 1.1]);
-            
-            xAxis.call(d3.axisBottom(xScale).ticks(10));
-            yAxis.call(d3.axisLeft(yScale));
-            
-            svg.selectAll(".line").remove();
-            svg.selectAll(".dot").remove();
-            
-            const line = d3.line()
-                .x(d => xScale(d.Minute))
-                .y(d => yScale(d.HR))
-                .curve(d3.curveMonotoneX);
-            
-            svg.append("path")
-                .datum(avgFormattedData)
-                .attr("class", "line avg-line")
-                .attr("fill", "none")
-                .attr("stroke", "black")
-                .attr("stroke-width", 2)
-                .attr("opacity", 0.8)
-                .attr("d", line);
-            
-            svg.append("path")
-                .datum(studentData)
-                .attr("class", "line student-line")
-                .attr("fill", "none")
-                .attr("stroke", colorScale(selectedStudent))
-                .attr("stroke-width", 2)
-                .attr("opacity", 0.8)
-                .attr("d", line);
-            
-            svg.selectAll(".dot")
-                .data(studentData)
-                .enter().append("circle")
-                .attr("class", "dot")
-                .attr("cx", d => xScale(d.Minute))
-                .attr("cy", d => yScale(d.HR))
-                .attr("r", 4)
-                .attr("fill", colorScale(selectedStudent))
-                .on("mouseover", (event, d) => {
-                    tooltip.style("display", "block")
-                        .html(`Minute: ${d.Minute}<br>HR: ${d.HR}`)
-                        .style("left", `${event.pageX + 5}px`)
-                        .style("top", `${event.pageY - 30}px`);
-                })
-                .on("mouseout", () => tooltip.style("display", "none"));
-            
-            updateLegend(selectedStudent);
-        }
-        
-        function updateLegend(selectedStudent) {
-            d3.select("#legend").html("");
-            const legend = d3.select("#legend");
-            
-            legend.append("div").style("display", "flex").style("align-items", "center")
-                .html(`<div style='width:20px; height:10px; background:black; margin-right:5px;'></div> <span>Average HR</span>`);
-            
-            legend.append("div").style("display", "flex").style("align-items", "center")
-                .html(`<div style='width:20px; height:10px; background:${colorScale(selectedStudent)}; margin-right:5px;'></div> <span>Student: ${selectedStudent}</span>`);
-        }
-        
-        d3.select("#examSelect").on("change", function() {
-            updateChart(this.value);
-        });
-        
-        d3.select("#studentSelect").on("change", function() {
-            drawChart(this.value);
-        });
-        
-        updateChart("midterm1");
-    </script>
+
     <script>
         document.querySelectorAll("#navbar a").forEach(link => {
             if (link.href === window.location.href) {
                 link.classList.add("active");
             }
         });
+
+        // Scroll to the visualization section when clicking "Start Exploring"
+        document.getElementById("start-btn").addEventListener("click", function() {
+            document.getElementById("visualizations").scrollIntoView({ behavior: "smooth" });
+        });
+
+        // Load HR data from CSV
+d3.csv("merged_midterm1_data.csv").then(data => {
+    data.forEach(d => {
+        d.Minute = +d.Minute;
+        d.HR = +d.HR;
+    });
+
+    let students = Array.from(new Set(data.map(d => d.Student)));
+
+    d3.select("#studentSelect")
+        .selectAll("option")
+        .data(students)
+        .enter()
+        .append("option")
+        .attr("value", d => d)
+        .text(d => d);
+
+    let currentStudent = students[0];
+    updateHeartVisualization(currentStudent);
+
+    d3.select("#studentSelect").on("change", function() {
+        currentStudent = this.value;
+        updateHeartVisualization(currentStudent);
+    });
+
+    function updateHeartVisualization(student) {
+        let studentData = data.filter(d => d.Student === student);
+
+        let timeIndex = 0;
+        function step() {
+            if (timeIndex < studentData.length) {
+                let currentHR = studentData[timeIndex].HR;
+                let bpmText = `Heart Rate: ${currentHR} BPM`;
+
+                // Animate heart beat size
+                d3.select("#heart")
+                    .transition().duration(60000 / currentHR / 2)
+                    .attr("transform", "scale(1.2)")
+                    .transition().duration(60000 / currentHR / 2)
+                    .attr("transform", "scale(1)");
+
+                d3.select("#heart-rate-display").text(bpmText);
+
+                // Update line chart
+                updateHeartChart(studentData.slice(0, timeIndex + 1));
+
+                timeIndex++;
+                setTimeout(step, 500);
+            }
+        }
+        step();
+    }
+
+    function updateHeartChart(data) {
+        const svg = d3.select("#heart-chart");
+        svg.selectAll("*").remove(); // Clear previous chart
+
+        const margin = { top: 20, right: 30, bottom: 30, left: 50 };
+        const width = 600 - margin.left - margin.right;
+        const height = 300 - margin.top - margin.bottom;
+
+        const xScale = d3.scaleLinear()
+            .domain(d3.extent(data, d => d.Minute))
+            .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+            .domain([d3.min(data, d => d.HR) * 0.9, d3.max(data, d => d.HR) * 1.1])
+            .range([height, 0]);
+
+        const line = d3.line()
+            .x(d => xScale(d.Minute))
+            .y(d => yScale(d.HR))
+            .curve(d3.curveMonotoneX);
+
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        g.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(10));
+
+        g.append("g")
+            .call(d3.axisLeft(yScale));
+
+        g.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "red")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+    }
+});
+
     </script>
-    
+
+    <style>
+        /* Full-Screen Intro Section */
+        #intro {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(to right, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+        }
+
+        #intro h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        #intro p {
+            font-size: 20px;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        #start-btn {
+            background: white;
+            color: #007bff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #start-btn:hover {
+            background: #ddd;
+        }
+
+        /* Section for Visualizations */
+        #visualizations {
+            padding: 50px;
+            text-align: center;
+        }
+
+        #visualizations h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        #visualizations p {
+            font-size: 18px;
+        }
+    </style>
+
 </body>
 </html>

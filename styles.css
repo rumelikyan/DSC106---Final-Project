@@ -30,3 +30,21 @@ nav {
 #navbar a.active {
     background-color: #007bff;
 }
+
+#heart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+#heart-rate-display {
+    font-size: 20px;
+    margin-top: 10px;
+}
+
+#chart-container {
+    margin-top: 20px;
+    text-align: center;
+}
+

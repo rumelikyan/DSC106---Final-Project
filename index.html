@@ -9,44 +9,44 @@
 </head>
 <body>
 
-
     <!-- Introduction Section (Hook) -->
     <section id="intro">
-        <h1>How Do Students' Bodies React to Exam Stress?</h1>
+        <h1>How Stressed Are You Right Now?</h1>
         <p>
-            Exams are stressful, but how does that stress show up in our bodies? 
-            Using real physiological data from students during exams, we explore 
-            how heart rate, sweat levels, and blood flow change under pressure.
+            Press the 'A' key every time you feel your heart beat for 10 seconds. 
+            We'll estimate your heart rate and predict how you'd perform on an exam right now.
         </p>
-        <button id="start-btn">Start Exploring</button>
+        <button id="start-test-btn">Start Test</button>
+        <div id="countdown" style="display: none; font-size: 24px; margin-top: 20px;"></div>
+        <p id="test-instructions" style="display: none;">Press the 'A' key when you feel your heartbeat.</p>
+        <p id="heart-rate-result" style="display: none;"></p>
+        <p id="exam-score-prediction" style="display: none; font-size: 24px; font-weight: bold;"></p>
+        <button id="restart-test-btn" style="display: none;">Take Test Again</button>
     </section>
 
-    <!-- Placeholder for Visualizations (To be built in later steps) -->
+    <!-- Placeholder for Visualizations -->
     <section id="visualizations">
         <h2>Understanding Physiological Stress Responses</h2>
         <p>Scroll down to explore how different physiological signals change during exams.</p>
     </section>
 
+    <!-- Heart Rate Visualization Section -->
     <section id="heart-rate">
         <h2>Heart Rate Changes During the Exam</h2>
         <p>Select a student to see how their heart rate fluctuated over time.</p>
         
         <label for="studentSelect">Select Student:</label>
         <select id="studentSelect"></select>
-    
+
         <div id="heart-container">
-            <svg id="heart-svg" width="150" height="150" viewBox="0 0 100 100">
-                <path id="heart" d="M50 85 C80 60, 90 30, 50 15 C10 30, 20 60, 50 85 Z" 
-                    fill="red" stroke="black" stroke-width="2"></path>
-            </svg>
+            <img id="heart-img" src="images/clarity.png" alt="Beating Heart">
             <p id="heart-rate-display">Heart Rate: -- BPM</p>
         </div>
-    
+
         <div id="chart-container">
             <svg id="heart-chart" width="600" height="300"></svg>
         </div>
     </section>
-    
 
     <script>
         document.querySelectorAll("#navbar a").forEach(link => {
@@ -55,102 +55,144 @@
             }
         });
 
-        // Scroll to the visualization section when clicking "Start Exploring"
-        document.getElementById("start-btn").addEventListener("click", function() {
-            document.getElementById("visualizations").scrollIntoView({ behavior: "smooth" });
+        // Fix: Ensure button exists before adding event listener
+        const startTestBtn = document.getElementById("start-test-btn");
+        if (startTestBtn) {
+            startTestBtn.addEventListener("click", function() {
+                startCountdown();
+            });
+        }
+
+        let spacePresses = 0;
+        let testActive = false;
+        let startTime, endTime;
+
+        // Countdown Timer Before Test Starts
+        function startCountdown() {
+            const countdownElement = document.getElementById("countdown");
+            const instructions = document.getElementById("test-instructions");
+            let timeLeft = 3;
+
+            startTestBtn.style.display = "none";
+            countdownElement.style.display = "block";
+            countdownElement.textContent = "Get ready... 3";
+
+            let countdownInterval = setInterval(() => {
+                timeLeft--;
+                countdownElement.textContent = `Get ready... ${timeLeft}`;
+                if (timeLeft === 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.style.display = "none";
+                    instructions.style.display = "block";
+                    startHeartRateTest();
+                }
+            }, 1000);
+        }
+
+        // Start 10-second Test
+        function startHeartRateTest() {
+            spacePresses = 0;
+            testActive = true;
+            startTime = Date.now();
+
+            setTimeout(() => {
+                testActive = false;
+                endTime = Date.now();
+                estimateHeartRate();
+            }, 10000);
+        }
+
+        // Count Space Bar Presses
+        document.addEventListener("keydown", function(event) {
+            if (testActive && event.code === "KeyA") {
+                spacePresses++;
+            }
         });
 
-        // Load HR data from CSV
-d3.csv("merged_midterm1_data.csv").then(data => {
-    data.forEach(d => {
-        d.Minute = +d.Minute;
-        d.HR = +d.HR;
-    });
+        // Estimate BPM & Predict Exam Score
+        function estimateHeartRate() {
+            let timeElapsed = (endTime - startTime) / 1000;
+            let estimatedBPM = (spacePresses / timeElapsed) * 60;
+            
+            document.getElementById("test-instructions").style.display = "none";
+            document.getElementById("heart-rate-result").style.display = "block";
+            document.getElementById("heart-rate-result").textContent = `Estimated Heart Rate: ${Math.round(estimatedBPM)} BPM`;
 
-    let students = Array.from(new Set(data.map(d => d.Student)));
-
-    d3.select("#studentSelect")
-        .selectAll("option")
-        .data(students)
-        .enter()
-        .append("option")
-        .attr("value", d => d)
-        .text(d => d);
-
-    let currentStudent = students[0];
-    updateHeartVisualization(currentStudent);
-
-    d3.select("#studentSelect").on("change", function() {
-        currentStudent = this.value;
-        updateHeartVisualization(currentStudent);
-    });
-
-    function updateHeartVisualization(student) {
-        let studentData = data.filter(d => d.Student === student);
-
-        let timeIndex = 0;
-        function step() {
-            if (timeIndex < studentData.length) {
-                let currentHR = studentData[timeIndex].HR;
-                let bpmText = `Heart Rate: ${currentHR} BPM`;
-
-                // Animate heart beat size
-                d3.select("#heart")
-                    .transition().duration(60000 / currentHR / 2)
-                    .attr("transform", "scale(1.2)")
-                    .transition().duration(60000 / currentHR / 2)
-                    .attr("transform", "scale(1)");
-
-                d3.select("#heart-rate-display").text(bpmText);
-
-                // Update line chart
-                updateHeartChart(studentData.slice(0, timeIndex + 1));
-
-                timeIndex++;
-                setTimeout(step, 500);
-            }
+            predictExamScore(estimatedBPM);
         }
-        step();
-    }
 
-    function updateHeartChart(data) {
-        const svg = d3.select("#heart-chart");
-        svg.selectAll("*").remove(); // Clear previous chart
+        // Linear Regression Model (Using Exam Scores vs. Heart Rate)
+        function predictExamScore(bpm) {
+            d3.csv("merged_final_exam_data.csv").then(data => {
+                let heartRates = data.map(d => +d.HR);
+                let grades = data.map(d => +d.Grade); // Use the "Grade" column
 
-        const margin = { top: 20, right: 30, bottom: 30, left: 50 };
-        const width = 600 - margin.left - margin.right;
-        const height = 300 - margin.top - margin.bottom;
+                if (heartRates.length === 0 || grades.length === 0) {
+                    document.getElementById("exam-score-prediction").textContent = "No grade data available.";
+                    return;
+                }
 
-        const xScale = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.Minute))
-            .range([0, width]);
+                // Simple Linear Regression: y = mx + b
+                let n = heartRates.length;
+                let sumX = heartRates.reduce((a, b) => a + b, 0);
+                let sumY = grades.reduce((a, b) => a + b, 0);
+                let sumXY = heartRates.map((x, i) => x * grades[i]).reduce((a, b) => a + b, 0);
+                let sumX2 = heartRates.map(x => x * x).reduce((a, b) => a + b, 0);
 
-        const yScale = d3.scaleLinear()
-            .domain([d3.min(data, d => d.HR) * 0.9, d3.max(data, d => d.HR) * 1.1])
-            .range([height, 0]);
+                let m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                let b = (sumY - m * sumX) / n;
 
-        const line = d3.line()
-            .x(d => xScale(d.Minute))
-            .y(d => yScale(d.HR))
-            .curve(d3.curveMonotoneX);
+                let predictedGrade = Math.round(m * bpm + b);
+                let predictedPercentage = ((predictedGrade / 200) * 100).toFixed(1) + "%"; // Convert to percentage
 
-        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+                document.getElementById("exam-score-prediction").style.display = "block";
+                document.getElementById("exam-score-prediction").textContent = `Predicted Exam Score: ${predictedPercentage}`;
 
-        g.append("g")
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(xScale).ticks(10));
+                // Show the "Take Test Again" button
+                document.getElementById("restart-test-btn").style.display = "block";
+            });
 
-        g.append("g")
-            .call(d3.axisLeft(yScale));
-
-        g.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "red")
-            .attr("stroke-width", 2)
-            .attr("d", line);
-    }
+            document.getElementById("restart-test-btn").addEventListener("click", function() {
+            document.getElementById("heart-rate-result").style.display = "none";
+            document.getElementById("exam-score-prediction").style.display = "none";
+            document.getElementById("restart-test-btn").style.display = "none";
+            document.getElementById("start-test-btn").style.display = "block";
 });
+
+        }
+
+
+
+        // Fix: Load HR data and populate student dropdown
+        d3.csv("merged_midterm1_data.csv").then(data => {
+            data.forEach(d => {
+                d.Minute = +d.Minute;
+                d.HR = +d.HR;
+            });
+
+            let students = Array.from(new Set(data.map(d => d.Student)));
+
+            if (students.length > 0) {
+                let studentDropdown = d3.select("#studentSelect");
+                studentDropdown.selectAll("option").remove();
+
+                studentDropdown
+                    .selectAll("option")
+                    .data(students)
+                    .enter()
+                    .append("option")
+                    .attr("value", d => d)
+                    .text(d => d);
+
+                let currentStudent = students[0];
+                updateHeartVisualization(currentStudent);
+
+                d3.select("#studentSelect").on("change", function() {
+                    currentStudent = this.value;
+                    updateHeartVisualization(currentStudent);
+                });
+            }
+        });
 
     </script>
 
@@ -168,45 +210,22 @@ d3.csv("merged_midterm1_data.csv").then(data => {
             padding: 20px;
         }
 
-        #intro h1 {
-            font-size: 36px;
-            margin-bottom: 20px;
+        #heart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
         }
 
-        #intro p {
+        #heart-img {
+            width: 150px;
+            height: auto;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        #heart-rate-display {
             font-size: 20px;
-            max-width: 600px;
-            margin-bottom: 30px;
-        }
-
-        #start-btn {
-            background: white;
-            color: #007bff;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        #start-btn:hover {
-            background: #ddd;
-        }
-
-        /* Section for Visualizations */
-        #visualizations {
-            padding: 50px;
-            text-align: center;
-        }
-
-        #visualizations h2 {
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-
-        #visualizations p {
-            font-size: 18px;
+            margin-top: 10px;
         }
     </style>
 

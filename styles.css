@@ -48,3 +48,53 @@ nav {
     text-align: center;
 }
 
+#intro {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    color: white;
+    padding: 20px;
+}
+
+#intro h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+#intro p {
+    font-size: 20px;
+    max-width: 600px;
+    margin-bottom: 30px;
+}
+
+#start-test-btn {
+    background: white;
+    color: #007bff;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#start-test-btn:hover {
+    background: #ddd;
+}
+
+#countdown {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#exam-score-prediction {
+    margin-top: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+

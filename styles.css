@@ -33,8 +33,8 @@ nav {
 
 #heart-container {
     display: grid;
-    grid-template-columns: repeat(5, minmax(200px, 1fr)); /* Ensures consistent sizing */
-    gap: 60px; /* Space between items */
+    grid-template-columns: repeat(5, 1fr); /* Forces exactly 5 columns */
+    gap: 40px; /* Adjust spacing between items */
     justify-items: center;
     align-items: center;
 }
@@ -50,23 +50,26 @@ nav {
 }
 
 .heart-img {
-    width: 200px;  /* Increase heart size */
+    width: 250px; /* Make the heart icon larger */
     height: auto;
 }
 
 
+
 .heart-rate-display {
-    font-size: 64px; /* 4x bigger */
+    font-size: 32px; /* Slightly smaller for better fit */
     margin-top: 5px;
     font-weight: bold;
     text-align: center;
 }
 
 
+
 .student-chart-container {
-    width: 180px;
-    height: 120px; /* Slightly larger */
+    width: 250px; /* Increase width */
+    height: 180px; /* Increase height */
 }
+
 
 
 

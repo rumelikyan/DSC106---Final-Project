@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Analysis</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul id="navbar">
+                <li><a href="index.html">Heart Data</a></li>
+                <li><a href="temperature.html">Temperature</a></li>
+                <li><a href="writeup.html" class="active">Write-Up</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <h1>Write-Up</h1>
+    <p>
+        In the first visualization, users can toggle between three different exams (Exam 1, Exam 2, and Final Exam) and choose one of ten students (S1 through S10) to examine their heart rate data over the duration of the selected exam. The chart displays two lines: one for the chosen student’s heart rate (in blue) and another for the class’s average heart rate (in black). The x-axis typically represents the passage of time (such as minutes into the exam), while the y-axis indicates the heart rate in beats per minute. By comparing the blue and black lines, one can identify how a particular student’s stress level (as inferred from their heart rate) fluctuates in relation to the overall class trend. Peaks or dips in the student’s data may suggest moments of increased or decreased stress, and comparing across different exams allows for a broader view of how that student’s physiological responses may change over the semester.
+    </p>
+    <p>
+        In the second visualization, there is a page dedicated to temperature analysis. Similar to the first page, it offers a dropdown menu that lets the user select any of the ten students (S1 through S10). A thermometer-style graphic then shows the chosen student’s temperature reading, with a numeric value (e.g., 23.4°C) prominently displayed. The color-coded bar on the thermometer adjusts to reflect changes in temperature, and the layout is designed to help users quickly gauge a student’s temperature level. However, there is some acknowledged confusion around the dataset’s temperature values, as they may not align with standard human body temperature ranges, suggesting these numbers could be derived from a different measurement or format. This page serves as a testing ground to ensure the temperature visualization works correctly, even if the readings themselves might be unconventional.
+
+    </p>
+    <p>
+        Taken together, these two visualizations offer a multifaceted look at student physiological data during exams. The heart rate chart provides insight into stress levels by comparing an individual’s data to the class average, while the temperature analysis presents another dimension of potential physiological change. Although the temperature readings may require additional interpretation, the combined approach allows for a richer understanding of how students might be responding to academic stressors throughout the testing period.
+    </p>
+</body>

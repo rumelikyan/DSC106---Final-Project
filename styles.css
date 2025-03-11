@@ -63,6 +63,20 @@ nav {
     text-align: center;
 }
 
+.heart-mask {
+    width: 80px;
+    height: 80px;
+    -webkit-mask-image: url("images/clarity.png");
+    mask-image: url("images/clarity.png");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    background-color: #ffcccc; /* Default light red */
+    transition: background-color 0.3s ease;
+}
 
 
 .student-chart-container {

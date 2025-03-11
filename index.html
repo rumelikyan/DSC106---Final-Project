@@ -537,59 +537,69 @@
 
         function updateStudentChart(student, data) {
             const svg = d3.select(`#chart-${student}`);
-            svg.selectAll("*").remove();
+            svg.selectAll("*").remove(); // Clear previous chart
 
-            const width = 180;
-            const height = 100;
-            const margin = { top: 10, right: 10, bottom: 20, left: 30 };
+            const width = 120, height = 80, margin = { top: 5, right: 5, bottom: 20, left: 30 };
 
+            // Create scales
             const xScale = d3.scaleLinear()
-                .domain(d3.extent(data, d => d.Minute))
+                .domain([0, d3.max(data, d => d.Minute)])
                 .range([margin.left, width - margin.right]);
 
             const yScale = d3.scaleLinear()
-                .domain([40, 200])
-                .range([height, 0]);
+                .domain([40, 200]) // Adjust if needed
+                .range([height - margin.bottom, margin.top]);
 
+            // Create axes
+            const xAxis = d3.axisBottom(xScale).ticks(3).tickSize(2).tickPadding(3);
+            const yAxis = d3.axisLeft(yScale).ticks(4).tickSize(2).tickPadding(3);
+
+            // Append Y-axis
+            svg.append("g")
+                .attr("transform", `translate(${margin.left}, 0)`)
+                .call(yAxis)
+                .selectAll("text")
+                .style("font-size", "8px");
+
+            // Append X-axis
+            svg.append("g")
+                .attr("transform", `translate(0, ${height - margin.bottom})`)
+                .call(xAxis)
+                .selectAll("text")
+                .style("font-size", "8px");
+
+            // X-axis label
+            svg.append("text")
+                .attr("x", width / 2 + 10)
+                .attr("y", height )
+                .attr("text-anchor", "middle")
+                .style("font-size", "8px")
+                .text("Minute of Exam");
+
+            // Y-axis label
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -height / 2)
+                .attr("y", 8)
+                .attr("text-anchor", "middle")
+                .style("font-size", "8px")
+                .text("Heart Rate (BPM)");
+
+            // Line generator
             const line = d3.line()
                 .x(d => xScale(d.Minute))
                 .y(d => yScale(d.HR))
                 .curve(d3.curveMonotoneX);
 
+            // Append line to chart
             svg.append("path")
                 .datum(data)
                 .attr("fill", "none")
                 .attr("stroke", "red")
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 1.2)
                 .attr("d", line);
-
-            svg.append("g")
-                .attr("transform", `translate(0, ${height - margin.bottom})`)
-                .call(d3.axisBottom(xScale).ticks(5));
-
-            svg.append("g")
-                .attr("transform", `translate(${margin.left}, 0)`)
-                .call(d3.axisLeft(yScale).ticks(5));
-
-            // X label
-            svg.append("text")
-                .attr("x", width / 2)
-                .attr("y", height + 30)
-                .attr("text-anchor", "middle")
-                .attr("font-size", "12px")
-                .attr("fill", "#333")
-                .text("Time (min)");
-
-            // Y label
-            svg.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin.left + 10)
-                .attr("x", 0 - (height / 2))
-                .attr("text-anchor", "middle")
-                .attr("font-size", "12px")
-                .attr("fill", "#333")
-                .text("Heart Rate (BPM)");
         }
+
 
         function loadExamData(filename) {
             d3.csv(filename).then(loadedData => {

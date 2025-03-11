@@ -207,3 +207,82 @@ nav {
     border-radius: 5px;
     transition: width 0.5s ease-in-out;
 }
+
+/* Consistent Section Styling */
+section {
+    text-align: center;
+    padding: 40px 20px;
+    font-family: 'Arial', sans-serif;
+    /* Use an orange gradient that complements the blue of #intro */
+    background: linear-gradient(to right, #ff9800, #f57c00);
+    color: white;
+  }
+  
+  /* Preserve the blue gradient for the intro section */
+  #intro {
+    background: linear-gradient(to right, #007bff, #0056b3);
+  }
+  
+  /* Consistent Title Styling for all sections */
+  section h1,
+  section h2,
+  section h3 {
+    font-size: 32px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  
+  /* Consistent Paragraph Styling */
+  section p {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  /* Remove default margins between sections and set a global style */
+section {
+    margin: 0;
+    padding: 60px 20px; /* Adjust as needed for spacing */
+  }
+  
+  /* Yellow background for certain sections */
+  .yellow-section {
+    background: linear-gradient(to right, #ffeb3b, #ffc107);
+    color: #333;
+  }
+  
+  /* White background for certain sections */
+  .white-section {
+    background: #fff;
+    color: #333;
+  }
+  
+  /* Remove any extra white space that might appear between sections */
+  body, html {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Provide a consistent style for h2/h3 in these sections */
+  .yellow-section h2,
+  .white-section h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+  
+  .yellow-section h3,
+  .white-section h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  /* Ensure paragraphs in these sections are readable */
+  .yellow-section p,
+  .white-section p {
+    font-size: 18px;
+    line-height: 1.5;
+    max-width: 800px;
+    margin: 0 auto 20px auto; /* center and add bottom spacing */
+    text-align: center;
+  }
+  
+  

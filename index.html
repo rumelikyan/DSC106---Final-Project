@@ -115,7 +115,7 @@
 </head>
 
 <body>
-    <!-- ========== INTRO SECTION (unchanged) ========== -->
+    <!-- ========== INTRO SECTION (BLUE) ========== -->
     <section id="intro">
         <h1>How Stressed Are You Right Now?</h1>
         <p>
@@ -130,17 +130,34 @@
         <button id="restart-test-btn" style="display: none;">Take Test Again</button>
     </section>
 
-    <!-- Placeholder for Visualizations -->
-    <section id="visualizations">
+    <!-- ========== VISUALIZATIONS SECTION (YELLOW) ========== -->
+    <section id="visualizations" class="yellow-section">
         <h2>Understanding Physiological Stress Responses</h2>
+        <p>
+            The study from which this data was extracted tracked students' nervous systems across three exams:
+            midterm 1, midterm 2, and the final exam. In this paper, we want to determine if there is a predictive
+            relationship between stress from the nervous system and exam performance.
+        </p>
+        <p>
+            <strong>Project Question:</strong> How do students' stress levels fluctuate across Exams?<br>
+            <strong>Dataset:</strong> A Wearable Exam Stress Dataset for Predicting Cognitive Performance in Real-World Settings<br>
+            Our project develops dynamic, interactive visualizations of physiological data—including HR (heart rate),
+            EDA (data from the electrodermal activity sensor), TEMP, and BVP (data from a photoplethysmograph)—collected
+            during exam sessions.
+        </p>
         <p>Scroll down to explore how different physiological signals change during exams.</p>
     </section>
 
-    <!-- HEART RATE VISUALIZATION SECTION (unchanged) -->
-    <section id="heart-rate">
+    <!-- ========== HEART RATE VISUALIZATION (WHITE) ========== -->
+    <section id="heart-rate" class="white-section">
         <h2>Heart Rate Changes During the Exam</h2>
+        <p>
+            <strong>About this visualization:</strong> This section focuses on heart rate (HR) data over time.
+            Each student’s HR is tracked to see how it fluctuates from the beginning to the end of an exam.
+            The aim is to observe potential stress peaks or dips in real time.
+        </p>
+
         <p>Select which exam dataset you want to see Heart Rate data for.</p>
-        
         <div class="exam-buttons">
             <button onclick="loadExamData('merged_midterm1_data.csv')">Midterm 1</button>
             <button onclick="loadExamData('merged_midterm2_data.csv')">Midterm 2</button>
@@ -161,10 +178,14 @@
         </div>
     </section>
 
-    <!-- SCATTER PLOTS (unchanged) -->
-    <section id="exam-performance">
+    <!-- ========== SCATTER PLOTS (YELLOW) ========== -->
+    <section id="exam-performance" class="yellow-section">
         <h2>Exam Performance vs. Average Heart Rate</h2>
-        <p>Hover over points to see student details. Compare different exams.</p>
+        <p>
+            <strong>About this visualization:</strong> This scatter plot compares each student’s average HR
+            to their exam score. Hover over points to see individual details. A high HR might suggest
+            heightened stress; by comparing it to exam scores, we can look for a correlation between stress and performance.
+        </p>
 
         <div id="scatterplots-container">
             <div class="scatterplot">
@@ -182,10 +203,14 @@
         </div>
     </section>
 
-    <!-- EDA (Sweat) Visualization with Enhanced Timeline -->
-    <section id="eda-visualization">
+    <!-- ========== EDA (Sweat) Visualization (WHITE) ========== -->
+    <section id="eda-visualization" class="white-section">
         <h2>EDA (Sweat) Visualization</h2>
-        <p>This section shows how EDA (Electrodermal Activity) changes over time for each student.</p>
+        <p>
+            <strong>About this visualization:</strong> EDA (Electrodermal Activity) tracks changes in skin conductance,
+            often associated with sweating. This timeline-based visualization shows how each student’s EDA changes
+            across the duration of an exam, potentially indicating moments of increased stress.
+        </p>
 
         <div class="exam-buttons">
             <button onclick="loadEDAData('merged_midterm1_data.csv')">Midterm 1</button>
@@ -217,9 +242,14 @@
         </div>
     </section>
 
-    <!-- Combined Averages (unchanged) -->
-    <section id="combined-averages">
+    <!-- ========== Combined Averages (YELLOW) ========== -->
+    <section id="combined-averages" class="yellow-section">
         <h2>Average HR & EDA Over Time (Combined)</h2>
+        <p>
+            <strong>About this visualization:</strong> By plotting average HR and EDA on the same chart, we can
+            see how these two metrics evolve together over time. If both lines spike simultaneously, that might
+            indicate an acute stress event shared among students.
+        </p>
         <p>Select an exam to plot both average HR and EDA on one chart. Use the checkboxes to show/hide each line.</p>
 
         <div class="exam-buttons">
@@ -238,10 +268,10 @@
                 Show EDA
             </label>
         </div>
-
         <div id="combined-chart-container"></div>
     </section>
 
+    <!-- Repeated tooltip div (unchanged) -->
     <div id="tooltip" style="
         position: absolute; 
         display: none; 
@@ -254,6 +284,7 @@
         z-index: 1000;">
     </div>
 
+    <!-- The rest of your scripts remain unchanged -->
     <script>
         /***********************************************************/
         /*   1) CODE FOR "HEART RATE TEST" (USER KEY INPUT)       */
@@ -766,255 +797,244 @@
         /*   5) COMBINED AVERAGES (HR & EDA) WITH TOGGLES (unchanged)            */
         /**************************************************************************/
         function loadAvgHREDA(csvFile) {
-        d3.csv(csvFile).then(rawData => {
-            rawData.forEach(d => {
-            d.Minute = +d.Minute;
-            d.HR = +d.HR;
-            d.EDA = +d.EDA;
+            d3.csv(csvFile).then(rawData => {
+                rawData.forEach(d => {
+                    d.Minute = +d.Minute;
+                    d.HR = +d.HR;
+                    d.EDA = +d.EDA;
+                });
+
+                let grouped = d3.rollups(
+                    rawData,
+                    v => ({
+                        avgHR: d3.mean(v, d => d.HR),
+                        avgEDA: d3.mean(v, d => d.EDA)
+                    }),
+                    d => d.Minute
+                );
+
+                let data = grouped.map(([minute, obj]) => ({
+                    Minute: +minute,
+                    avgHR: obj.avgHR,
+                    avgEDA: obj.avgEDA
+                }));
+
+                data.sort((a, b) => d3.ascending(a.Minute, b.Minute));
+
+                // Remove old chart if present
+                d3.select("#combined-chart-container").selectAll("svg").remove();
+
+                const margin = { top: 30, right: 60, bottom: 40, left: 50 };
+                const width = 600 - margin.left - margin.right;
+                const height = 300 - margin.top - margin.bottom;
+
+                const svg = d3.select("#combined-chart-container")
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom);
+
+                const chartArea = svg
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                // X scale
+                const xScale = d3.scaleLinear()
+                    .domain(d3.extent(data, d => d.Minute))
+                    .range([0, width]);
+
+                // Y scale for HR
+                const yHR = d3.scaleLinear()
+                    .domain(d3.extent(data, d => d.avgHR))
+                    .nice()
+                    .range([height, 0]);
+
+                // Y scale for EDA
+                const yEDA = d3.scaleLinear()
+                    .domain(d3.extent(data, d => d.avgEDA))
+                    .nice()
+                    .range([height, 0]);
+
+                // Axes
+                const xAxis = chartArea.append("g")
+                    .attr("transform", `translate(0,${height})`)
+                    .call(d3.axisBottom(xScale).ticks(10));
+
+                xAxis.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", 35)
+                    .attr("fill", "#000")
+                    .style("text-anchor", "middle")
+                    .text("Time (Minutes)");
+
+                const yAxisLeft = chartArea.append("g")
+                    .call(d3.axisLeft(yHR).ticks(5));
+
+                yAxisLeft.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", -40)
+                    .attr("x", -height / 2)
+                    .attr("dy", "1em")
+                    .attr("fill", "#000")
+                    .style("text-anchor", "middle")
+                    .text("HR (BPM)");
+
+                const yAxisRight = chartArea.append("g")
+                    .attr("transform", `translate(${width},0)`)
+                    .call(d3.axisRight(yEDA).ticks(5));
+
+                yAxisRight.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 60)
+                    .attr("x", -height / 2)
+                    .attr("dy", "-3.5em")
+                    .attr("fill", "#000")
+                    .style("text-anchor", "middle")
+                    .text("EDA (µS)");
+
+                // Lines
+                const hrLine = d3.line()
+                    .x(d => xScale(d.Minute))
+                    .y(d => yHR(d.avgHR))
+                    .curve(d3.curveMonotoneX);
+
+                const edaLine = d3.line()
+                    .x(d => xScale(d.Minute))
+                    .y(d => yEDA(d.avgEDA))
+                    .curve(d3.curveMonotoneX);
+
+                // Add lines
+                const pathHR = chartArea.append("path")
+                    .datum(data)
+                    .attr("fill", "none")
+                    .attr("stroke", "red")
+                    .attr("stroke-width", 2)
+                    .attr("id", "avg-hr-line")
+                    .attr("d", hrLine);
+
+                const pathEDA = chartArea.append("path")
+                    .datum(data)
+                    .attr("fill", "none")
+                    .attr("stroke", "blue")
+                    .attr("stroke-width", 2)
+                    .attr("id", "avg-eda-line")
+                    .attr("d", edaLine);
+
+                // Legend
+                const legend = chartArea.append("g")
+                    .attr("id", "legend")
+                    .attr("transform", `translate(${width - 80}, 10)`);
+
+                // HR legend
+                legend.append("line")
+                    .attr("x1", 0)
+                    .attr("y1", 0)
+                    .attr("x2", 20)
+                    .attr("y2", 0)
+                    .attr("stroke", "red")
+                    .attr("stroke-width", 2);
+
+                legend.append("text")
+                    .attr("x", 25)
+                    .attr("y", 4)
+                    .style("font-size", "12px")
+                    .text("HR");
+
+                // EDA legend
+                legend.append("line")
+                    .attr("x1", 0)
+                    .attr("y1", 20)
+                    .attr("x2", 20)
+                    .attr("y2", 20)
+                    .attr("stroke", "blue")
+                    .attr("stroke-width", 2);
+
+                legend.append("text")
+                    .attr("x", 25)
+                    .attr("y", 24)
+                    .style("font-size", "12px")
+                    .text("EDA");
+
+                // Checkboxes toggling lines
+                const hrCheckbox = document.getElementById("toggle-hr");
+                const edaCheckbox = document.getElementById("toggle-eda");
+                function updateLineVisibility() {
+                    pathHR.style("display", hrCheckbox.checked ? null : "none");
+                    pathEDA.style("display", edaCheckbox.checked ? null : "none");
+                }
+                hrCheckbox.addEventListener("change", updateLineVisibility);
+                edaCheckbox.addEventListener("change", updateLineVisibility);
+                updateLineVisibility();
+
+                // ----------- Hover Interactivity -----------
+                const hrCircle = chartArea.append("circle")
+                    .attr("r", 4)
+                    .attr("fill", "red")
+                    .style("display", "none");
+
+                const edaCircle = chartArea.append("circle")
+                    .attr("r", 4)
+                    .attr("fill", "blue")
+                    .style("display", "none");
+
+                const tooltip = d3.select("#tooltip");
+
+                chartArea.append("rect")
+                    .attr("class", "overlay")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .style("fill", "none")
+                    .style("pointer-events", "all")
+                    .on("mousemove", onMouseMove)
+                    .on("mouseout", onMouseOut);
+
+                function onMouseMove(event) {
+                    const [mouseX] = d3.pointer(event, this);
+                    const xVal = xScale.invert(mouseX);
+                    let idx = d3.bisector(d => d.Minute).left(data, xVal);
+                    if (idx < 0) idx = 0;
+                    if (idx >= data.length) idx = data.length - 1;
+
+                    const dPoint = data[idx];
+                    if (hrCheckbox.checked) {
+                        hrCircle
+                            .style("display", null)
+                            .attr("cx", xScale(dPoint.Minute))
+                            .attr("cy", yHR(dPoint.avgHR));
+                    } else {
+                        hrCircle.style("display", "none");
+                    }
+
+                    if (edaCheckbox.checked) {
+                        edaCircle
+                            .style("display", null)
+                            .attr("cx", xScale(dPoint.Minute))
+                            .attr("cy", yEDA(dPoint.avgEDA));
+                    } else {
+                        edaCircle.style("display", "none");
+                    }
+
+                    tooltip.style("display", "block")
+                        .html(`
+                            <strong>Minute:</strong> ${dPoint.Minute}<br>
+                            ${hrCheckbox.checked ? `HR: ${dPoint.avgHR.toFixed(1)}<br>` : ""}
+                            ${edaCheckbox.checked ? `EDA: ${dPoint.avgEDA.toFixed(2)}<br>` : ""}
+                        `);
+                    const [chartX, chartY] = d3.pointer(event, document.body);
+                    tooltip
+                        .style("left", chartX + 15 + "px")
+                        .style("top", (chartY - 20) + "px");
+                }
+
+                function onMouseOut() {
+                    hrCircle.style("display", "none");
+                    edaCircle.style("display", "none");
+                    tooltip.style("display", "none");
+                }
+                // ----------- End Hover Interactivity -----------
             });
-
-            let grouped = d3.rollups(
-            rawData,
-            v => ({
-                avgHR: d3.mean(v, d => d.HR),
-                avgEDA: d3.mean(v, d => d.EDA)
-            }),
-            d => d.Minute
-            );
-
-            let data = grouped.map(([minute, obj]) => ({
-            Minute: +minute,
-            avgHR: obj.avgHR,
-            avgEDA: obj.avgEDA
-            }));
-
-            data.sort((a, b) => d3.ascending(a.Minute, b.Minute));
-
-            // Remove old chart if present
-            d3.select("#combined-chart-container").selectAll("svg").remove();
-
-            const margin = { top: 30, right: 60, bottom: 40, left: 50 };
-            const width = 600 - margin.left - margin.right;
-            const height = 300 - margin.top - margin.bottom;
-
-            const svg = d3.select("#combined-chart-container")
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom);
-
-            const chartArea = svg
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-
-            // X scale
-            const xScale = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.Minute))
-            .range([0, width]);
-
-            // Y scale for HR
-            const yHR = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.avgHR))
-            .nice()
-            .range([height, 0]);
-
-            // Y scale for EDA
-            const yEDA = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.avgEDA))
-            .nice()
-            .range([height, 0]);
-
-            // Axes
-            const xAxis = chartArea.append("g")
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(xScale).ticks(10));
-
-            xAxis.append("text")
-            .attr("x", width / 2)
-            .attr("y", 35)
-            .attr("fill", "#000")
-            .style("text-anchor", "middle")
-            .text("Time (Minutes)");
-
-            const yAxisLeft = chartArea.append("g")
-            .call(d3.axisLeft(yHR).ticks(5));
-
-            yAxisLeft.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", -40)
-            .attr("x", -height / 2)
-            .attr("dy", "1em")
-            .attr("fill", "#000")
-            .style("text-anchor", "middle")
-            .text("HR (BPM)");
-
-            const yAxisRight = chartArea.append("g")
-            .attr("transform", `translate(${width},0)`)
-            .call(d3.axisRight(yEDA).ticks(5));
-
-            // Move the second y-axis label slightly to the right
-            yAxisRight.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 60)        // a bit more offset so it's not overlapping
-            .attr("x", -height / 2)
-            .attr("dy", "-3.5em")
-            .attr("fill", "#000")
-            .style("text-anchor", "middle")
-            .text("EDA (µS)");
-
-            // Lines
-            const hrLine = d3.line()
-            .x(d => xScale(d.Minute))
-            .y(d => yHR(d.avgHR))
-            .curve(d3.curveMonotoneX);
-
-            const edaLine = d3.line()
-            .x(d => xScale(d.Minute))
-            .y(d => yEDA(d.avgEDA))
-            .curve(d3.curveMonotoneX);
-
-            // Add lines
-            const pathHR = chartArea.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "red")
-            .attr("stroke-width", 2)
-            .attr("id", "avg-hr-line")
-            .attr("d", hrLine);
-
-            const pathEDA = chartArea.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "blue")
-            .attr("stroke-width", 2)
-            .attr("id", "avg-eda-line")
-            .attr("d", edaLine);
-
-            // Legend
-            const legend = chartArea.append("g")
-            .attr("id", "legend")
-            .attr("transform", `translate(${width - 80}, 10)`); // top-right corner
-
-            // HR legend
-            legend.append("line")
-            .attr("x1", 0)
-            .attr("y1", 0)
-            .attr("x2", 20)
-            .attr("y2", 0)
-            .attr("stroke", "red")
-            .attr("stroke-width", 2);
-
-            legend.append("text")
-            .attr("x", 25)
-            .attr("y", 4)
-            .style("font-size", "12px")
-            .text("HR");
-
-            // EDA legend
-            legend.append("line")
-            .attr("x1", 0)
-            .attr("y1", 20)
-            .attr("x2", 20)
-            .attr("y2", 20)
-            .attr("stroke", "blue")
-            .attr("stroke-width", 2);
-
-            legend.append("text")
-            .attr("x", 25)
-            .attr("y", 24)
-            .style("font-size", "12px")
-            .text("EDA");
-
-            // Checkboxes toggling lines
-            const hrCheckbox = document.getElementById("toggle-hr");
-            const edaCheckbox = document.getElementById("toggle-eda");
-            function updateLineVisibility() {
-            pathHR.style("display", hrCheckbox.checked ? null : "none");
-            pathEDA.style("display", edaCheckbox.checked ? null : "none");
-            }
-            hrCheckbox.addEventListener("change", updateLineVisibility);
-            edaCheckbox.addEventListener("change", updateLineVisibility);
-            updateLineVisibility();
-
-            // ----------- Hover Interactivity -----------
-            // We'll add circles for each line that show the closest data point
-            const hrCircle = chartArea.append("circle")
-            .attr("r", 4)
-            .attr("fill", "red")
-            .style("display", "none");
-
-            const edaCircle = chartArea.append("circle")
-            .attr("r", 4)
-            .attr("fill", "blue")
-            .style("display", "none");
-
-            // A tooltip to show numeric values
-            const tooltip = d3.select("#tooltip");
-
-            // We'll create an overlay rectangle to track mouse movements
-            chartArea.append("rect")
-            .attr("class", "overlay")
-            .attr("width", width)
-            .attr("height", height)
-            .style("fill", "none")
-            .style("pointer-events", "all")
-            .on("mousemove", onMouseMove)
-            .on("mouseout", onMouseOut);
-
-            // Function to find the nearest X index from the mouse position
-            function onMouseMove(event) {
-            const [mouseX] = d3.pointer(event, this);
-            const xVal = xScale.invert(mouseX);
-
-            // find the nearest data point by minute
-            let idx = d3.bisector(d => d.Minute).left(data, xVal);
-            if (idx < 0) idx = 0;
-            if (idx >= data.length) idx = data.length - 1;
-
-            const dPoint = data[idx];
-            // Position each circle accordingly
-            if (hrCheckbox.checked) {
-                hrCircle
-                .style("display", null)
-                .attr("cx", xScale(dPoint.Minute))
-                .attr("cy", yHR(dPoint.avgHR));
-            } else {
-                hrCircle.style("display", "none");
-            }
-
-            if (edaCheckbox.checked) {
-                edaCircle
-                .style("display", null)
-                .attr("cx", xScale(dPoint.Minute))
-                .attr("cy", yEDA(dPoint.avgEDA));
-            } else {
-                edaCircle.style("display", "none");
-            }
-
-            // Show the tooltip with the numeric values
-            tooltip.style("display", "block")
-                .html(`
-                <strong>Minute:</strong> ${dPoint.Minute}<br>
-                ${hrCheckbox.checked ? `HR: ${dPoint.avgHR.toFixed(1)}<br>` : ""}
-                ${edaCheckbox.checked ? `EDA: ${dPoint.avgEDA.toFixed(2)}<br>` : ""}
-                `);
-
-            const [chartX, chartY] = d3.pointer(event, document.body);
-            tooltip
-                .style("left", chartX + 15 + "px")
-                .style("top", (chartY - 20) + "px");
-            }
-
-            function onMouseOut() {
-            hrCircle.style("display", "none");
-            edaCircle.style("display", "none");
-            tooltip.style("display", "none");
-            }
-            // ----------- End Hover Interactivity -----------
-        });
         }
-        </script>
+    </script>
 
-    <!-- Original tooltip div, unchanged -->
     <div id="tooltip" style="
         position: absolute; 
         display: none; 

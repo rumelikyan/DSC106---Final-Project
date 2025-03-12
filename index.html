@@ -205,7 +205,8 @@
         </div>
 
         <div class="control-buttons">
-            <button id="restart-vis-btn" style="display: block;">Restart Visualization</button>
+            <button id="reset-vis-btn" style="display: block;">Reset Visualization</button>
+            <button id="heart-play-btn" style="display: block;">Play</button>
             <button id="stop-vis-btn" style="display: block;">Stop Visualization</button>
         </div>
     </section>
@@ -428,18 +429,19 @@
         }
 
         /*****************************************************/
-        /*   2) HEART RATE VISUALIZATION (unchanged)         */
+        /*   2) HEART RATE VISUALIZATION (updated controls)  */
         /*****************************************************/
         let data = [];
-        let visualizationTimeout; 
+        let visualizationTimeout;
         var heartTimeIndex = 0;
-        
+        var heartIsPlaying = false;
+
         function updateHeartVisualization() {
             // Clear any ongoing animation and reset the container
             clearTimeout(visualizationTimeout);
             d3.select("#heart-container").html("");
 
-            // Identify unique students and create the visualization container for each
+            // Create visualization container for each student
             let students = Array.from(new Set(data.map(d => d.Student)));
             students.forEach(student => {
                 let studentDiv = d3.select("#heart-container")
@@ -471,18 +473,18 @@
                     .attr("height", 80);
             });
 
-            // Show and configure the progress slider
+            // Show and configure the timeline slider
             document.getElementById("heart-progress-container").style.display = "block";
             const heartProgress = document.getElementById("heart-progress");
             const heartProgressVal = document.getElementById("heart-progress-value");
 
-            // Decide if this is a midterm or final exam based on data
-            let maxTime = 90;  // default for midterms
+            // Determine timeline length based on exam type (midterm vs. final)
+            let maxTime = 90;
             let isFinalExam = false;
             if (data.length > 0) {
                 let maxDataTime = d3.max(data, d => d.Minute);
                 if (maxDataTime > 90) {
-                    maxTime = 180; // final exam
+                    maxTime = 180;
                     isFinalExam = true;
                 }
             }
@@ -491,155 +493,150 @@
             heartProgress.value = 0;
             heartProgressVal.textContent = 0;
 
-            // Reset the global timeline index
+            // Reset global timeline index and start animation
             heartTimeIndex = 0;
-            let isPlaying = true;
+            heartIsPlaying = true;
+            stepHeart();
 
-            // Function to draw the frame for time t for every student
-            function drawHeartFrame(t) {
-                students.forEach(student => {
-                    let studentData = data.filter(d => d.Student === student);
-                    if (t < studentData.length) {
-                        let currentHR = studentData[t].HR;
-                        let bpmText = `${student}: ${Math.round(currentHR)} BPM`;
+            // When the user drags the slider, pause auto-play and jump to that time index
+            heartProgress.addEventListener("input", function(event) {
+                clearTimeout(visualizationTimeout);
+                heartTimeIndex = parseInt(event.target.value, 10);
+                heartProgressVal.textContent = heartTimeIndex;
+                drawHeartFrame(heartTimeIndex);
+            });
+        }
 
-                        // Color scale from low to high heart rate
-                        const colorScale = d3.scaleLinear()
-                            .domain([40, 100, 180])
-                            .range(["#3399ff", "#ffff66", "#cc0000"]);
-                        let heartColor = colorScale(currentHR);
+        function stepHeart() {
+            const heartProgress = document.getElementById("heart-progress");
+            let maxTime = parseInt(heartProgress.max, 10);
 
-                        // Apply a subtle pulsing effect
-                        d3.select(`#heart-${student}`)
-                            .style("filter", `drop-shadow(0px 0px 8px ${heartColor})`)
-                            .style("transition", "transform 0.2s ease-in-out")
-                            .transition().duration(60000 / currentHR / 3)
-                            .style("transform", "scale(1.2)")
-                            .transition().duration(60000 / currentHR / 3)
-                            .style("transform", "scale(1)");
+            if (heartTimeIndex < maxTime) {
+                drawHeartFrame(heartTimeIndex);
 
-                        // Update heart rate text and sparkline chart
-                        d3.select(`#heart-rate-display-${student}`).text(bpmText);
-                        updateStudentChart(student, studentData.slice(0, t + 1));
-
-                        // Format and update grade display
-                        let studentGrade = studentData[t].Grade || "N/A";
-                        if (isFinalExam && studentGrade !== "N/A") {
-                            studentGrade = (studentGrade / 200 * 100).toFixed(1) + "%";
-                        } else if (studentGrade !== "N/A") {
-                            studentGrade = studentGrade + "%";
-                        }
-                        d3.select(`#heart-grade-${student}`).text(`Grade: ${studentGrade}`);
-                    }
-                });
-                // Update the slider UI
-                heartProgress.value = t;
-                heartProgressVal.textContent = t;
-            }
-
-            // Recursive function to animate the visualization frame-by-frame
-            function step() {
-                if (heartTimeIndex < maxTime) {
-                    drawHeartFrame(heartTimeIndex);
-
-                    // ------------------------------
-                    // Annotation logic:
-                    // For midterms, pause at 45; for finals, pause at 90
-                    if ((!isFinalExam && heartTimeIndex === 45) || (isFinalExam && heartTimeIndex === 90)) {
-                        clearTimeout(visualizationTimeout);
-                        isPlaying = false;
-                        const annotation = d3.select("#heart-container")
+                // Annotation logic: pause at minute 45 (midterms) or 90 (finals)
+                let isFinalExam = (maxTime > 90);
+                let pauseMinute = isFinalExam ? 90 : 45;
+                if (heartTimeIndex === pauseMinute) {
+                    clearTimeout(visualizationTimeout);
+                    heartIsPlaying = false;
+                    const annotation = d3.select("#heart-container")
                         .append("div")
                         .attr("class", "annotation")
                         .style("position", "relative")
                         .html(
-                            (!isFinalExam)
+                            !isFinalExam
                             ? `
                                 <strong>Annotation at 45 (Midterm Halfway):</strong><br>
                                 At this midpoint, heart rates may be peaking or dipping.
-                                We pause to highlight how stress could be trending.
+                                We pause to highlight how stress trends may emerge.
                                 <br><br>
                                 <button id="continue-btn">Continue</button>
                             `
                             : `
                                 <strong>Annotation at 90 (Final Halfway):</strong><br>
-                                This is a critical point as sustained stress may show up in elevated heart rate.
+                                This is a critical point where sustained stress is evident.
                                 <br><br>
                                 <button id="continue-btn">Continue</button>
                             `
                         );
-
-                        d3.select("#continue-btn").on("click", function() {
-                            annotation.remove();
-                            heartTimeIndex++;
-                            isPlaying = true;
-                            step(); // resume animation
-                        });
-                        return; // Pause animation until user clicks "Continue"
-                    }
-                    // Advance to the next frame
-                    heartTimeIndex++;
-                    visualizationTimeout = setTimeout(step, 250);
-                } else {
-                    isPlaying = false; // End of timeline
+                    d3.select("#continue-btn").on("click", function() {
+                        annotation.remove();
+                        heartTimeIndex++;
+                        heartIsPlaying = true;
+                        stepHeart();
+                    });
+                    return; // Pause until "Continue" is clicked
                 }
+                // Advance frame
+                heartTimeIndex++;
+                visualizationTimeout = setTimeout(stepHeart, 250);
+            } else {
+                heartIsPlaying = false;
             }
-            step();
-
-            // Attach the slider event listener inside this function so that it uses the global heartTimeIndex
-            heartProgress.addEventListener("input", function(event) {
-            heartTimeIndex = parseInt(event.target.value, 10);
-            heartProgressVal.textContent = heartTimeIndex;
-            drawHeartFrame(heartTimeIndex);
-        });
-
         }
 
+        function drawHeartFrame(t) {
+            const heartProgress = document.getElementById("heart-progress");
+            const heartProgressVal = document.getElementById("heart-progress-value");
+            let students = Array.from(new Set(data.map(d => d.Student)));
+            let isFinalExam = false;
+            if (data.length > 0 && d3.max(data, d => d.Minute) > 90) {
+                isFinalExam = true;
+            }
+            students.forEach(student => {
+                let studentData = data.filter(d => d.Student === student);
+                if (t < studentData.length) {
+                    let currentHR = studentData[t].HR;
+                    let bpmText = `${student}: ${Math.round(currentHR)} BPM`;
 
+                    // Color scale for heart rate
+                    const colorScale = d3.scaleLinear()
+                        .domain([40, 100, 180])
+                        .range(["#3399ff", "#ffff66", "#cc0000"]);
+                    let heartColor = colorScale(currentHR);
 
+                    // Apply a pulsing effect to the heart image
+                    d3.select(`#heart-${student}`)
+                        .style("filter", `drop-shadow(0px 0px 8px ${heartColor})`)
+                        .style("transition", "transform 0.2s ease-in-out")
+                        .transition().duration(60000 / currentHR / 3)
+                        .style("transform", "scale(1.2)")
+                        .transition().duration(60000 / currentHR / 3)
+                        .style("transform", "scale(1)");
 
-        function updateStudentChart(student, data) {
+                    d3.select(`#heart-rate-display-${student}`).text(bpmText);
+                    updateStudentChart(student, studentData.slice(0, t + 1));
+
+                    let studentGrade = studentData[t].Grade || "N/A";
+                    if (isFinalExam && studentGrade !== "N/A") {
+                        studentGrade = (studentGrade / 200 * 100).toFixed(1) + "%";
+                    } else if (studentGrade !== "N/A") {
+                        studentGrade = studentGrade + "%";
+                    }
+                    d3.select(`#heart-grade-${student}`).text(`Grade: ${studentGrade}`);
+                }
+            });
+            heartProgress.value = t;
+            heartProgressVal.textContent = t;
+        }
+
+        function updateStudentChart(student, dataSlice) {
             const svg = d3.select(`#chart-${student}`);
-            svg.selectAll("*").remove(); // Clear previous chart
+            svg.selectAll("*").remove();
 
             const width = 120, height = 80, margin = { top: 5, right: 5, bottom: 20, left: 30 };
 
-            // Create scales
             const xScale = d3.scaleLinear()
-                .domain([0, d3.max(data, d => d.Minute)])
+                .domain([0, d3.max(dataSlice, d => d.Minute)])
                 .range([margin.left, width - margin.right]);
 
             const yScale = d3.scaleLinear()
-                .domain([40, 200]) // Adjust if needed
+                .domain([40, 200])
                 .range([height - margin.bottom, margin.top]);
 
-            // Create axes
             const xAxis = d3.axisBottom(xScale).ticks(3).tickSize(2).tickPadding(3);
             const yAxis = d3.axisLeft(yScale).ticks(4).tickSize(2).tickPadding(3);
 
-            // Append Y-axis
             svg.append("g")
                 .attr("transform", `translate(${margin.left}, 0)`)
                 .call(yAxis)
                 .selectAll("text")
                 .style("font-size", "8px");
 
-            // Append X-axis
             svg.append("g")
                 .attr("transform", `translate(0, ${height - margin.bottom})`)
                 .call(xAxis)
                 .selectAll("text")
                 .style("font-size", "8px");
 
-            // X-axis label
             svg.append("text")
                 .attr("x", width / 2 + 10)
-                .attr("y", height )
+                .attr("y", height)
                 .attr("text-anchor", "middle")
                 .style("font-size", "8px")
                 .text("Minute of Exam");
 
-            // Y-axis label
             svg.append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("x", -height / 2)
@@ -648,21 +645,18 @@
                 .style("font-size", "8px")
                 .text("Heart Rate (BPM)");
 
-            // Line generator
             const line = d3.line()
                 .x(d => xScale(d.Minute))
                 .y(d => yScale(d.HR))
                 .curve(d3.curveMonotoneX);
 
-            // Append line to chart
             svg.append("path")
-                .datum(data)
+                .datum(dataSlice)
                 .attr("fill", "none")
                 .attr("stroke", "red")
                 .attr("stroke-width", 1.2)
                 .attr("d", line);
         }
-
 
         function loadExamData(filename) {
             d3.csv(filename).then(loadedData => {
@@ -670,37 +664,56 @@
                     d.Minute = +d.Minute;
                     d.HR = +d.HR;
                 });
-
                 data = loadedData;
                 updateHeartVisualization();
-
-                document.getElementById("restart-vis-btn").style.display = "block";
+                // Make sure Reset, Stop, and Play buttons are visible
+                document.getElementById("reset-vis-btn").style.display = "block";
                 document.getElementById("stop-vis-btn").style.display = "block";
+                document.getElementById("heart-play-btn").style.display = "block";
             });
         }
 
-        const restartVisBtn = document.getElementById("restart-vis-btn");
-        if (restartVisBtn) {
-            restartVisBtn.addEventListener("click", function () {
+        // --- Control Buttons for Heart Visualization ---
+        // Reset Button (mirroring hand visualization reset)
+        const resetVisBtn = document.getElementById("reset-vis-btn");
+        if (resetVisBtn) {
+            resetVisBtn.addEventListener("click", function () {
                 clearTimeout(visualizationTimeout);
-                updateHeartVisualization();
+                d3.select("#heart-container").html(`<p>Select a dataset to begin visualization.</p>`);
+                d3.select("#chart-container").html(`<svg id="heart-chart" width="600" height="300"></svg>`);
+                document.getElementById("heart-progress-container").style.display = "none";
+                heartIsPlaying = false;
             });
         }
 
+        // Stop Button: Pauses the animation without clearing the visualization.
         const stopVisBtn = document.getElementById("stop-vis-btn");
         if (stopVisBtn) {
             stopVisBtn.addEventListener("click", function () {
                 clearTimeout(visualizationTimeout);
-                d3.select("#heart-container").html(`<p>Select a dataset to begin visualization.</p>`);
-                d3.select("#chart-container").html(`<svg id="heart-chart" width="600" height="300"></svg>`);
-                document.getElementById("heart-rate-result").style.display = "none";
-                document.getElementById("exam-score-prediction").style.display = "none";
-                document.getElementById("start-test-btn").style.display = "block";
-                document.getElementById("restart-vis-btn").style.display = "none";
-                document.getElementById("stop-vis-btn").style.display = "none";
-                visualizationTimeout = null;
+                heartIsPlaying = false;
             });
         }
+
+        // Play Button: Resumes animation if paused.
+        const heartPlayBtn = document.getElementById("heart-play-btn");
+        if (heartPlayBtn) {
+            heartPlayBtn.addEventListener("click", function () {
+                if (!heartIsPlaying) {
+                    startHeartAnimation();
+                }
+            });
+        }
+
+        function startHeartAnimation() {
+            clearTimeout(visualizationTimeout);
+            const heartProgress = document.getElementById("heart-progress");
+            heartTimeIndex = parseInt(heartProgress.value, 10) || 0;
+            heartIsPlaying = true;
+            stepHeart();
+        }
+
+
 
         /**********************************************************/
         /*   3) SCATTER PLOTS: EXAM PERFORMANCE vs. AVG HR        */

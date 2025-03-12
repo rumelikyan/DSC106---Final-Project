@@ -299,4 +299,14 @@ section {
     text-align: center;
   }
   
+  .annotation {
+    position: absolute; 
+    background: #fff3cd;  /* Light yellow background */
+    border: 1px solid #ffc107; 
+    padding: 10px; 
+    font-size: 14px;
+    max-width: 300px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    z-index: 1001;
+  }
   

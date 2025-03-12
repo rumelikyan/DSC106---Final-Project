@@ -773,7 +773,7 @@
         let edaTimeIndex = 0;     
         let edaMaxCount = 0;      
         let edaIsPlaying = false; 
-        const edaBaseInterval = 500; 
+        const edaBaseInterval = 250; 
 
         function loadEDAData(csvFile) {
             d3.csv(csvFile).then((data) => {
@@ -861,6 +861,30 @@
         function stepEDA() {
             if (edaTimeIndex < edaMaxCount) {
                 drawEDAFrame(edaTimeIndex);
+                if (edaTimeIndex === 45) {
+                    clearTimeout(edaAnimationTimeout);
+                    edaIsPlaying = false;
+                    const annotation = d3.select("#eda-container")
+                    .append("div")
+                    .attr("class", "annotation")
+                    .style("position", "relative")
+                    .html(`
+                        <strong>Annotation at 45 (Halfway):</strong><br>
+                        At this time index (45), we pause the EDA visualization to highlight 
+                        how skin conductance (in μS) might be trending. Higher EDA can indicate 
+                        increased sympathetic nervous system activity (stress/arousal).
+                        <br><br>
+                        <button id="continue-btn">Continue</button>
+                    `);
+
+                    d3.select("#continue-btn").on("click", function() {
+                        annotation.remove();
+                        edaTimeIndex++;
+                        edaIsPlaying = true;
+                        stepEDA();
+                    });
+                    return;
+                }
                 edaTimeIndex++;
                 edaAnimationTimeout = setTimeout(stepEDA, edaBaseInterval);
             }

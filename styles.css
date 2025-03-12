@@ -309,4 +309,16 @@ section {
     box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
     z-index: 1001;
   }
-  
+  #combined-chart-container {
+    position: relative;
+    top: 30px; /* push it down */
+    left:40px
+  }
+  #left-column{
+    position: relative;
+    top: 10px;
+  }
+  #toggle-controls{
+    position: relative;
+    right: 400px;
+  }

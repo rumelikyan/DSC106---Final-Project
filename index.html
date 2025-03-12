@@ -431,10 +431,13 @@
         /*****************************************************/
         /*   2) HEART RATE VISUALIZATION (updated controls)  */
         /*****************************************************/
+        
         let data = [];
         let visualizationTimeout;
         var heartTimeIndex = 0;
         var heartIsPlaying = false;
+        let currentExam = "";
+
 
         function updateHeartVisualization() {
             // Clear any ongoing animation and reset the container
@@ -514,47 +517,68 @@
             if (heartTimeIndex < maxTime) {
                 drawHeartFrame(heartTimeIndex);
 
-                // Annotation logic: pause at minute 45 (midterms) or 90 (finals)
-                let isFinalExam = (maxTime > 90);
-                let pauseMinute = isFinalExam ? 90 : 45;
-                if (heartTimeIndex === pauseMinute) {
-                    clearTimeout(visualizationTimeout);
-                    heartIsPlaying = false;
-                    const annotation = d3.select("#heart-container")
-                        .append("div")
-                        .attr("class", "annotation")
-                        .style("position", "relative")
-                        .html(
-                            !isFinalExam
-                            ? `
-                                <strong>Annotation at 45 (Midterm Halfway):</strong><br>
-                                At this midpoint, heart rates may be peaking or dipping.
-                                We pause to highlight how stress trends may emerge.
-                                <br><br>
-                                <button id="continue-btn">Continue</button>
-                            `
-                            : `
-                                <strong>Annotation at 90 (Final Halfway):</strong><br>
-                                This is a critical point where sustained stress is evident.
-                                <br><br>
-                                <button id="continue-btn">Continue</button>
-                            `
-                        );
-                    d3.select("#continue-btn").on("click", function() {
-                        annotation.remove();
-                        heartTimeIndex++;
-                        heartIsPlaying = true;
-                        stepHeart();
-                    });
-                    return; // Pause until "Continue" is clicked
+                // --- NEW ANNOTATION CHECKS ---
+                if (currentExam === "Midterm1" && heartTimeIndex === 48) {
+                    showAnnotation(`
+                        <strong>Minute 48 annotation (Midterm 1 Halfway):</strong><br>
+                        A lot of students experience a spike in heart rate
+                        around the halfway point of this midterm.
+                    `);
+                    return;
                 }
-                // Advance frame
+                if (currentExam === "Midterm2" && heartTimeIndex === 55) {
+                    showAnnotation(`
+                        <strong>Minute 55 annotation (Midterm 2):</strong><br>
+                        At this point, several students show an uptick in heart rate, 
+                        possibly indicating a tough set of questions causing added stress.
+                    `);
+                    return;
+                }
+                if (currentExam === "Final" && heartTimeIndex === 10) {
+                    showAnnotation(`
+                        <strong>Minute 10 annotation (Final Exam):</strong><br>
+                        Interestingly, most students begin with a lower HR than the midterms, 
+                        and the lower average HR gets more evident later.
+                    `);
+                    return;
+                }
+
+                if (currentExam === "Final" && heartTimeIndex === 54) {
+                    showAnnotation(`
+                        <strong>Minute 54 annotation (Final Exam):</strong><br>
+                        The lower average HR is especially evident now that enough test duration has passed.
+                    `);
+                    return;
+                }
+
                 heartTimeIndex++;
                 visualizationTimeout = setTimeout(stepHeart, 250);
             } else {
                 heartIsPlaying = false;
             }
         }
+
+        function showAnnotation(htmlContent) {
+            clearTimeout(visualizationTimeout);
+            heartIsPlaying = false;
+
+            const annotation = d3.select("#heart-container")
+                .append("div")
+                .attr("class", "annotation")
+                .style("position", "relative")
+                .html(`
+                    ${htmlContent}
+                    <br><br><button id="continue-btn">Continue</button>
+                `);
+
+            d3.select("#continue-btn").on("click", function() {
+                annotation.remove();
+                heartTimeIndex++;
+                heartIsPlaying = true;
+                stepHeart();
+            });
+        }
+
 
         function drawHeartFrame(t) {
             const heartProgress = document.getElementById("heart-progress");
@@ -664,6 +688,17 @@
                     d.Minute = +d.Minute;
                     d.HR = +d.HR;
                 });
+                // Detect exam from filename
+                if (filename.includes("midterm1")) {
+                    currentExam = "Midterm1";
+                } else if (filename.includes("midterm2")) {
+                    currentExam = "Midterm2";
+                } else if (filename.includes("final")) {
+                    currentExam = "Final";
+                } else {
+                    currentExam = "";
+                }
+
                 data = loadedData;
                 updateHeartVisualization();
                 // Make sure Reset, Stop, and Play buttons are visible

@@ -433,32 +433,38 @@
         let visualizationTimeout; 
 
         function updateHeartVisualization() {
+            // Clear any ongoing timeouts and reset the container
             clearTimeout(visualizationTimeout);
             d3.select("#heart-container").html("");
 
+            // Identify unique student IDs
             let students = Array.from(new Set(data.map(d => d.Student)));
             students.forEach(student => {
+                // Each student gets a wrapper div
                 let studentDiv = d3.select("#heart-container")
                     .append("div")
                     .attr("class", "student-heart");
 
+                // Heart image
                 studentDiv.append("img")
                     .attr("src", "images/clarity.png")
                     .attr("alt", `Heart - ${student}`)
                     .attr("class", "heart-img")
                     .attr("id", `heart-${student}`);
 
+                // Heart Rate display text (BPM)
                 studentDiv.append("p")
                     .attr("id", `heart-rate-display-${student}`)
                     .attr("class", "heart-rate-display")
                     .text(`${student}: -- BPM`);
 
-                // Add a placeholder for the student's grade
+                // Grade placeholder
                 studentDiv.append("p")
                     .attr("id", `heart-grade-${student}`)
                     .attr("class", "heart-grade-display")
                     .text(`Grade: --`);
 
+                // Tiny sparkline chart
                 let chartContainer = studentDiv.append("div")
                     .attr("class", "student-chart-container");
 
@@ -468,32 +474,34 @@
                     .attr("height", 80);
             });
 
-            // Show progress bar
+            // Show the progress bar (timeline slider)
             document.getElementById("heart-progress-container").style.display = "block";
 
             const heartProgress = document.getElementById("heart-progress");
             const heartProgressVal = document.getElementById("heart-progress-value");
 
-            // Determine max time limit based on dataset
-            let maxTime = 90;  // Default for midterm
+            // Decide whether this exam is midterm or final by looking at the data
+            let maxTime = 90;  // default for midterm
             let isFinalExam = false;
             if (data.length > 0) {
                 let maxDataTime = d3.max(data, d => d.Minute);
                 if (maxDataTime > 90) {
-                    maxTime = 180; // Final exam
+                    maxTime = 180; // final exam
                     isFinalExam = true;
                 }
             }
 
-            // Set progress bar properties
+            // Configure the slider
             heartProgress.min = 0;
             heartProgress.max = maxTime;
             heartProgress.value = 0;
             heartProgressVal.textContent = 0;
 
+            // Start at timeIndex = 0
             let timeIndex = 0;
             let isPlaying = true;
 
+            // Draw a single frame (time t) for all students
             function drawHeartFrame(t) {
                 students.forEach(student => {
                     let studentData = data.filter(d => d.Student === student);
@@ -501,14 +509,14 @@
                         let currentHR = studentData[t].HR;
                         let bpmText = `${student}: ${Math.round(currentHR)} BPM`;
 
-                        // Improved color contrast: blue for low HR, red for high HR
+                        // Color scale from low to high HR
                         const colorScale = d3.scaleLinear()
-                            .domain([40, 100, 180]) // Low, mid, high HR
+                            .domain([40, 100, 180])   // Low, moderate, high HR
                             .range(["#3399ff", "#ffff66", "#cc0000"]); // Blue → Yellow → Deep Red
 
                         let heartColor = colorScale(currentHR);
 
-                        // Apply new color & subtle heartbeat effect
+                        // Subtle pulsing effect
                         d3.select(`#heart-${student}`)
                             .style("filter", `drop-shadow(0px 0px 8px ${heartColor})`)
                             .style("transition", "transform 0.2s ease-in-out")
@@ -517,45 +525,106 @@
                             .transition().duration(60000 / currentHR / 3)
                             .style("transform", "scale(1)");
 
+                        // Update text for BPM
                         d3.select(`#heart-rate-display-${student}`).text(bpmText);
+
+                        // Update the small sparkline chart with data up to this minute
                         updateStudentChart(student, studentData.slice(0, t + 1));
 
-                        // Format grade correctly
+                        // Format the student's Grade properly (final exam out of 200, midterms out of 100)
                         let studentGrade = studentData[t].Grade || "N/A";
                         if (isFinalExam && studentGrade !== "N/A") {
-                            studentGrade = (studentGrade / 200 * 100).toFixed(1) + "%"; // Convert score to percent
+                            studentGrade = (studentGrade / 200 * 100).toFixed(1) + "%";
                         } else if (studentGrade !== "N/A") {
-                            studentGrade = studentGrade + "%"; // Midterms already in %
+                            studentGrade = studentGrade + "%";
                         }
                         d3.select(`#heart-grade-${student}`).text(`Grade: ${studentGrade}`);
                     }
                 });
 
-                // Update progress bar
+                // Update progress slider display
                 heartProgress.value = t;
                 heartProgressVal.textContent = t;
             }
 
+            // Recursive function to animate frame-by-frame
             function step() {
                 if (timeIndex < maxTime) {
                     drawHeartFrame(timeIndex);
+
+                    // ==========================================
+                    //    ANNOTATION LOGIC (NEW)
+                    // ==========================================
+                    // Pause at 45 for midterms, 90 for finals
+                    if (!isFinalExam && timeIndex === 45) {
+                        clearTimeout(visualizationTimeout);
+                        isPlaying = false;
+
+                        // Add annotation
+                        const annotation = d3.select("#heart-container")
+                        .append("div")
+                        .attr("class", "annotation")
+                        .style("position", "relative")
+                        .html(`
+                            <strong>Annotation at 45 (Midterm Halfway):</strong><br>
+                            At this midpoint, heart rates may be peaking or dipping.
+                            We pause to highlight how stress could be trending.
+                            <br><br>
+                            <button id="continue-btn">Continue</button>
+                        `);
+
+                        // Resume when user clicks continue
+                        d3.select("#continue-btn").on("click", function() {
+                            annotation.remove();
+                            timeIndex++;
+                            isPlaying = true;
+                            step(); // resume animation
+                        });
+                        return; // stop until user hits continue
+                    }
+
+                    if (isFinalExam && timeIndex === 90) {
+                        clearTimeout(visualizationTimeout);
+                        isPlaying = false;
+
+                        // Add annotation
+                        const annotation = d3.select("#heart-container")
+                        .append("div")
+                        .attr("class", "annotation")
+                        .style("position", "relative")
+                        .html(`
+                            <strong>Annotation at 90 (Final Halfway):</strong><br>
+                            This is a critical point for many students,
+                            as sustained stress may show up in elevated heart rate.
+                            <br><br>
+                            <button id="continue-btn">Continue</button>
+                        `);
+
+                        // Resume when user clicks continue
+                        d3.select("#continue-btn").on("click", function() {
+                            annotation.remove();
+                            timeIndex++;
+                            isPlaying = true;
+                            step(); // resume animation
+                        });
+                        return; // stop until user hits continue
+                    }
+                    // ==========================================
+
+                    // Move to next time step
                     timeIndex++;
                     visualizationTimeout = setTimeout(step, 500);
+
                 } else {
-                    isPlaying = false; // Stop at the end
+                    // Reached the end
+                    isPlaying = false;
                 }
             }
-            step();
 
-            // Allow manual control via progress bar
-            heartProgress.addEventListener("input", function(event) {
-                clearTimeout(visualizationTimeout);
-                timeIndex = parseInt(event.target.value, 10);
-                heartProgressVal.textContent = timeIndex;
-                isPlaying = false; // Stop auto-play when manually adjusted
-                drawHeartFrame(timeIndex);
-            });
+            // Start the animation
+            step();
         }
+
 
 
 

@@ -861,6 +861,7 @@
         let edaMaxCount = 0;      
         let edaIsPlaying = false; 
         const edaBaseInterval = 250; 
+        let currentEDAExam = "";
 
         function loadEDAData(csvFile) {
             d3.csv(csvFile).then((data) => {
@@ -868,7 +869,16 @@
                     d.Minute = +d.Minute;
                     d.EDA = +d.EDA;
                 });
-
+                // Identify exam for EDA
+                if (csvFile.includes("midterm1")) {
+                    currentEDAExam = "Midterm1";
+                } else if (csvFile.includes("midterm2")) {
+                    currentEDAExam = "Midterm2";
+                } else if (csvFile.includes("final")) {
+                    currentEDAExam = "Final";
+                } else {
+                    currentEDAExam = "";
+                }
                 edaData = data;
                 // set up the container
                 setupEDAContainer();
@@ -948,34 +958,71 @@
         function stepEDA() {
             if (edaTimeIndex < edaMaxCount) {
                 drawEDAFrame(edaTimeIndex);
-                if (edaTimeIndex === 45) {
-                    clearTimeout(edaAnimationTimeout);
-                    edaIsPlaying = false;
-                    const annotation = d3.select("#eda-container")
-                    .append("div")
-                    .attr("class", "annotation")
-                    .style("position", "relative")
-                    .html(`
-                        <strong>Annotation at 45 (Halfway):</strong><br>
-                        At this time index (45), we pause the EDA visualization to highlight 
-                        how skin conductance (in μS) might be trending. Higher EDA can indicate 
-                        increased sympathetic nervous system activity (stress/arousal).
-                        <br><br>
-                        <button id="continue-btn">Continue</button>
-                    `);
 
-                    d3.select("#continue-btn").on("click", function() {
-                        annotation.remove();
-                        edaTimeIndex++;
-                        edaIsPlaying = true;
-                        stepEDA();
-                    });
+                // === NEW ANNOTATION CHECKS ===
+                // 1) Midterm 1 at minute 49
+                if (currentEDAExam === "Midterm1" && edaTimeIndex === 49) {
+                    showEDAAnnotation(`
+                        <strong>Midterm 1 Minute 50:</strong><br>
+                        Student 9 reaches its peak EDA of ~0.40 μS here,
+                        suggesting a strong sympathetic (sweat) response
+                        around the halfway mark.
+                    `);
+                    return; // pause until user continues
+                }
+
+                // 2) Midterm 2 at minute 28
+                if (currentEDAExam === "Midterm2" && edaTimeIndex === 28) {
+                    showEDAAnnotation(`
+                        <strong>Midterm 2 minute 29:</strong><br>
+                        Student 4 hits an EDA peak of ~5.79 μS,
+                        indicating a significant stress spike
+                        possibly from tough questions.
+                    `);
                     return;
                 }
+
+                // 3) Final at minute 45
+                if (currentEDAExam === "Final" && edaTimeIndex === 45) {
+                    showEDAAnnotation(`
+                        <strong>Final Exam minute 45:</strong><br>
+                        All students show much lower EDA now;
+                        even Student 4, who had high peaks in Midterm 2,
+                        is significantly calmer here.
+                    `);
+                    return;
+                }
+
+                // existing code...
+                // if (edaTimeIndex === 45) { ... } // either remove or keep your old code here
+
                 edaTimeIndex++;
                 edaAnimationTimeout = setTimeout(stepEDA, edaBaseInterval);
             }
         }
+
+        function showEDAAnnotation(htmlContent) {
+            clearTimeout(edaAnimationTimeout);
+            edaIsPlaying = false;
+
+            const annotation = d3.select("#eda-container")
+                .append("div")
+                .attr("class", "annotation")
+                .style("position", "relative")
+                .html(`
+                    ${htmlContent}
+                    <br><br>
+                    <button id="continue-eda-btn">Continue</button>
+                `);
+
+            d3.select("#continue-eda-btn").on("click", function() {
+                annotation.remove();
+                edaTimeIndex++;
+                edaIsPlaying = true;
+                stepEDA(); // resume
+            });
+        }
+
 
         function startEDAAnimation() {
             clearTimeout(edaAnimationTimeout);

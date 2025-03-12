@@ -269,6 +269,7 @@
 
             <div style="margin-top: 10px;">
               <button id="eda-stop-btn">Stop</button>
+              <button id="eda-play-btn">Play</button>
               <button id="eda-reset-btn">Reset</button>
             </div>
         </div>
@@ -938,6 +939,7 @@
         // EDA control
         const edaStopBtn = document.getElementById("eda-stop-btn");
         const edaResetBtn = document.getElementById("eda-reset-btn");
+        const edaPlayBtn = document.getElementById("eda-play-btn");
         const edaProgress = document.getElementById("eda-progress");
         const edaProgressVal = document.getElementById("eda-progress-value");
 
@@ -953,6 +955,15 @@
                 document.getElementById("eda-container").innerHTML = `<p>No EDA data loaded yet.</p>`;
                 document.getElementById("eda-controls").style.display = "none";
                 edaIsPlaying = false;
+            });
+        }
+
+        if (edaPlayBtn) {
+            edaPlayBtn.addEventListener("click", () => {
+                // Only resume if the animation is not currently playing
+                if (!edaIsPlaying) {
+                    startEDAAnimation();
+                }
             });
         }
 

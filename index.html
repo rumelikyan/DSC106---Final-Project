@@ -587,11 +587,11 @@
 
             // Attach the slider event listener inside this function so that it uses the global heartTimeIndex
             heartProgress.addEventListener("input", function(event) {
-                clearTimeout(visualizationTimeout);  // Stop auto-animation while user adjusts the slider
-                heartTimeIndex = parseInt(event.target.value, 10);
-                heartProgressVal.textContent = heartTimeIndex;
-                drawHeartFrame(heartTimeIndex);
-            });
+            heartTimeIndex = parseInt(event.target.value, 10);
+            heartProgressVal.textContent = heartTimeIndex;
+            drawHeartFrame(heartTimeIndex);
+        });
+
         }
 
 

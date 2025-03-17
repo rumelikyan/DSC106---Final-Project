@@ -311,14 +311,18 @@ section {
   }
   #combined-chart-container {
     position: relative;
-    top: 30px; /* push it down */
-    left:40px
+    top: 45px; /* push it down */
+    right: 100px
   }
   #left-column{
     position: relative;
-    top: 10px;
+    top: 20px;
+  }
+  #left-column h2 {
+    margin: 0;        /* no extra left margin */
+    text-align: left; /* left-align the text */
   }
   #toggle-controls{
     position: relative;
-    right: 400px;
+    right: 350px;
   }

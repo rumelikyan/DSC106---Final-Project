@@ -277,62 +277,95 @@
     </section>
 
  <!-- ========== Combined Averages (YELLOW) ========== -->
-<section id="combined-averages" class="yellow-section">
-    <h2>Regression and Average HR & EDA Over Time</h2>
-        <p><strong>About this visualization:</strong> By plotting average HR and EDA on the same chart, we can
-            see how these two metrics evolve together over time. If both lines spike simultaneously, that might
-            indicate an acute stress event shared among students. Also having the regression plotting both variables
-            we can see what the predicted score would be.</p>
-    <!-- Flex container for two columns: left (combined chart & controls) and right (regression) -->
-    <div style="display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 20px;">
+<section id="combined-averages" class="yellow-section" style="width: 100%;">
+    <!-- Centered wrapper for the content -->
+    <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
       
-<!-- ========== LEFT COLUMN: Controls & Combined Chart ========== -->
-<div id="left-column" style="display: flex; flex-direction: column; align-items: stretch; gap: 5px;">
-    <!-- Heading above the left column, right-aligned -->
-    <h2 style="font-size: 22px; margin: 0; text-align: center;">
-      <strong>Average HR &amp; EDA Over Time (Combined)</strong>
-    </h2>
-    
-    <!-- Exam buttons arranged horizontally, aligned to the right -->
-    <div class="exam-buttons" style="display: flex; flex-direction: row; gap: 5px; justify-content: flex-left; width: 100%;">
-      <button style="font-size: 12px; padding: 5px;" onclick="loadAvgHREDA('merged_midterm1_data.csv')">
-        Midterm 1 Averages
-      </button>
-      <button style="font-size: 12px; padding: 5px;" onclick="loadAvgHREDA('merged_midterm2_data.csv')">
-        Midterm 2 Averages
-      </button>
-      <button style="font-size: 12px; padding: 5px;" onclick="loadAvgHREDA('merged_final_exam_data.csv')">
-        Final Averages
-      </button>
-    </div>
-    
-    <!-- Checkboxes to toggle HR/EDA, right-aligned -->
-    <div id="toggle-controls" style="width: 100%; text-align: right;">
-      <label style="font-size: 12px; margin-right: 10px;">
-        <input type="checkbox" id="toggle-hr" checked /> HR
-      </label>
-      <label style="font-size: 12px;">
-        <input type="checkbox" id="toggle-eda" checked /> EDA
-      </label>
-    </div>
-    
-    <!-- Combined Chart container -->
-    <div id="combined-chart-container" style="width: 900px; text-align: center; margin-top: 15px;">
-      <!-- D3 will insert the SVG for the combined chart here -->
-    </div>
-  </div>
-      <!-- ========== RIGHT COLUMN: Regression Sliders & Graph ========== -->
-      <div id="regression-column" style="flex: 1; min-width: 400px;">
-        <!-- Sliders container -->
-        <div id="prediction-sliders-container" style="margin-bottom: 10px;">
-          <!-- Slider HTML will be inserted here -->
+      <h2>Regression and Average HR & EDA Over Time</h2>
+      <p>
+        <strong>About this visualization:</strong> By plotting average HR and EDA on the same chart, 
+        we can see how these two metrics evolve together over time. If both lines spike simultaneously, 
+        that might indicate an acute stress event shared among students. Also having the regression 
+        plotting both variables we can see what the predicted score would be.
+      </p>
+      
+      <!-- Flex container for two columns (left: combined chart & controls, right: regression) -->
+      <div 
+        style="
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          align-items: flex-start;
+          gap: 20px;
+        "
+      >
+        <!-- LEFT COLUMN: Controls & Combined Chart -->
+        <div 
+          id="left-column"
+          style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px;"
+        >
+          <h2 style="font-size: 22px; margin: 0; text-align: left;">
+            <strong>Average HR &amp; EDA Over Time (Combined)</strong>
+          </h2>
+          
+          <!-- Exam buttons arranged horizontally -->
+          <div 
+            class="exam-buttons"
+            style="display: flex; flex-direction: row; gap: 5px; justify-content: flex-start; width: 100%; margin-left: 40px;"
+          >
+            <button style="font-size: 12px; padding: 5px;" onclick="loadAvgHREDA('merged_midterm1_data.csv')">
+              Midterm 1 Averages
+            </button>
+            <button style="font-size: 12px; padding: 5px;" onclick="loadAvgHREDA('merged_midterm2_data.csv')">
+              Midterm 2 Averages
+            </button>
+            <button style="font-size: 12px; padding: 5px;" onclick="loadAvgHREDA('merged_final_exam_data.csv')">
+              Final Averages
+            </button>
+          </div>
+          
+          <!-- Checkboxes to toggle HR/EDA -->
+          <div 
+            id="toggle-controls"
+            style="width: 100%; text-align: right;"
+          >
+            <label style="font-size: 12px; margin-right: 10px;">
+              <input type="checkbox" id="toggle-hr" checked /> HR
+            </label>
+            <label style="font-size: 12px;">
+              <input type="checkbox" id="toggle-eda" checked /> EDA
+            </label>
+          </div>
+          
+          <!-- Combined Chart container; reduced from 900px to 600px to center better -->
+          <div 
+            id="combined-chart-container"
+            style="text-align: center; margin-top: 15px; margin: 0 auto; width: 600px;"
+          >
+            <!-- D3 will insert the SVG here -->
+          </div>
         </div>
-        <!-- Regression chart container -->
-        <div id="regression-chart-container"></div>
-      </div>
-      <!-- end right-column -->
+        
+        <!-- RIGHT COLUMN: Regression Sliders & Graph -->
+        <div 
+          id="regression-column"
+          style="flex: 1; min-width: 400px;"
+        >
+          <!-- Sliders container -->
+          <div id="prediction-sliders-container" style="margin-bottom: 10px;">
+            <!-- Sliders inserted here by JavaScript -->
+          </div>
+          
+          <!-- Regression chart container -->
+          <div id="regression-chart-container">
+            <!-- D3 will insert the regression chart here -->
+          </div>
+        </div>
+        <!-- end right-column -->
+        
+      </div> <!-- end flex container -->
       
-    </div> <!-- end flex container -->
+    </div> <!-- end centered wrapper -->
   </section>
 
     <!-- Repeated tooltip div (unchanged) -->
@@ -1297,134 +1330,264 @@
 }
 </script>
 
+<!-- ========================== Section 6) Multiple Regression ================================ -->
 <script>
-/**************************************************************************/
-/* Section 6) Sliders for Predicted Score & Regression Graph              */
-/**************************************************************************/
-
-/* (A) Insert Sliders in #prediction-sliders-container */
-d3.select("#prediction-sliders-container").html(`
-  <h3>Select HR & EDA for Regression</h3>
-  <div class="slider-container">
-    <label for="hr-slider" style="min-width:80px;">Avg HR (BPM):</label>
-    <input type="range" id="hr-slider" min="40" max="200" step="1" value="80">
-    <span id="hr-value">80</span>
-  </div>
-  <div class="slider-container" style="margin-top:10px;">
-    <label for="eda-slider" style="min-width:80px;">Avg EDA (µS):</label>
-    <input type="range" id="eda-slider" min="0" max="5" step="0.1" value="1.5">
-    <span id="eda-value">1.5</span>
-  </div>
-  <p style="margin-top:10px;">
-    Predicted Score: <span id="predicted-score">--</span>%
-  </p>
-`);
-
-/* (B) Build Regression Graph in #regression-chart-container */
-const marginLR = { top:30, right:30, bottom:40, left:50 };
-const widthLR  = 600 - marginLR.left - marginLR.right;
-const heightLR = 300 - marginLR.top - marginLR.bottom;
-
-const svgLR = d3.select("#regression-chart-container")
-  .append("svg")
-  .attr("width", widthLR + marginLR.left + marginLR.right)
-  .attr("height", heightLR + marginLR.top + marginLR.bottom);
-
-const lrArea= svgLR.append("g")
-  .attr("transform", `translate(${marginLR.left},${marginLR.top})`);
-
-// X scale for HR
-const xScaleLR= d3.scaleLinear()
-  .domain([40,200])
-  .range([0,widthLR]);
-// Y scale for predicted score
-const yScaleLR= d3.scaleLinear()
-  .domain([0,100])
-  .range([heightLR,0]);
-
-// Axes
-lrArea.append("g")
-  .attr("transform",`translate(0,${heightLR})`)
-  .call(d3.axisBottom(xScaleLR).ticks(5))
-  .append("text")
-  .attr("x", widthLR/2)
-  .attr("y",35)
-  .style("text-anchor","middle")
-  .style("fill","#000")
-  .text("Heart Rate (BPM)");
-
-lrArea.append("g")
-  .call(d3.axisLeft(yScaleLR).ticks(5))
-  .append("text")
-  .attr("transform","rotate(-90)")
-  .attr("x",-heightLR/2)
-  .attr("y",-40)
-  .style("text-anchor","middle")
-  .style("fill","#000")
-  .text("Predicted Score (%)");
-
-// Single path for regression line + highlight circle
-const regressionLine= lrArea.append("path")
-  .attr("fill","none")
-  .attr("stroke","steelblue")
-  .attr("stroke-width",2);
-
-const highlightCircle= lrArea.append("circle")
-  .attr("r",5)
-  .attr("fill","red");
-
-// A dummy formula (replace with real logic)
-function computeScore(hrVal, edaVal){
-  const fromHR  = 0.5 * hrVal + 20;
-  const fromEDA = -10 * edaVal + 150;
-  let combined= (fromHR + fromEDA)/2;
-  return Math.max(0, Math.min(100, combined));
-}
-
-// Re-draw line for EDA, highlight the current HR
-function updateRegressionChart(hrVal, edaVal){
-  // sample HR=40..200
-  const lineData = d3.range(40,201).map(h => ({
-    hr: h,
-    score: computeScore(h, edaVal)
-  }));
-
-  const lrLine= d3.line()
-    .x(d => xScaleLR(d.hr))
-    .y(d => yScaleLR(d.score))
-    .curve(d3.curveMonotoneX);
-
-  regressionLine
-    .datum(lineData)
-    .attr("d", lrLine);
-
-  let currentScore= computeScore(hrVal, edaVal);
-  highlightCircle
-    .attr("cx", xScaleLR(hrVal))
-    .attr("cy", yScaleLR(currentScore));
-}
-
-// Sliders -> text + line update
-function updateSliders() {
-  const hrVal  = +document.getElementById("hr-slider").value;
-  const edaVal = +document.getElementById("eda-slider").value;
-
-  document.getElementById("hr-value").textContent   = hrVal;
-  document.getElementById("eda-value").textContent  = edaVal;
-
-  const predicted = computeScore(hrVal, edaVal);
-  document.getElementById("predicted-score").textContent= predicted.toFixed(1);
-
-  updateRegressionChart(hrVal, edaVal);
-}
-
-// Hook slider events
-document.getElementById("hr-slider").addEventListener("input", updateSliders);
-document.getElementById("eda-slider").addEventListener("input", updateSliders);
-
-// Initialize once
-updateSliders();
-</script>
+    /**************************************************************************/
+    /* Section 6) Sliders for Predicted Score & Regression Graph (Multiple)   */
+    /**************************************************************************/
+    
+    // We'll store the final regression parameters once we load the CSV
+    let beta0 = 0;  // intercept
+    let beta1 = 0;  // slope for HR
+    let beta2 = 0;  // slope for EDA
+    let lrMaxGrade = 100; // to scale predicted grade into 0-100%
+    
+    /* (A) Insert Sliders in #prediction-sliders-container */
+    d3.select("#prediction-sliders-container").html(`
+      <h3>Select HR & EDA for Regression</h3>
+      <div class="slider-container">
+        <label for="hr-slider" style="min-width:80px;">Avg HR (BPM):</label>
+        <input type="range" id="hr-slider" min="40" max="200" step="1" value="80">
+        <span id="hr-value">80</span>
+      </div>
+      <div class="slider-container" style="margin-top:10px;">
+        <label for="eda-slider" style="min-width:80px;">Avg EDA (µS):</label>
+        <input type="range" id="eda-slider" min="0" max="5" step="0.1" value="1.5">
+        <span id="eda-value">1.5</span>
+      </div>
+      <p style="margin-top:10px;">
+        Predicted Score: <span id="predicted-score">--</span>%
+      </p>
+    `);
+    
+    /* (B) Build Regression Graph in #regression-chart-container */
+    const marginLR = { top:30, right:30, bottom:40, left:50 };
+    const widthLR  = 600 - marginLR.left - marginLR.right;
+    const heightLR = 300 - marginLR.top - marginLR.bottom;
+    
+    const svgLR = d3.select("#regression-chart-container")
+      .append("svg")
+      .attr("width", widthLR + marginLR.left + marginLR.right)
+      .attr("height", heightLR + marginLR.top + marginLR.bottom);
+    
+    const lrArea = svgLR.append("g")
+      .attr("transform", `translate(${marginLR.left},${marginLR.top})`);
+    
+    // X scale for HR (just to draw the line from 40..200 BPM)
+    const xScaleLR = d3.scaleLinear()
+      .domain([40,200])
+      .range([0,widthLR]);
+    
+    // Y scale for predicted score (0..100%)
+    const yScaleLR = d3.scaleLinear()
+      .domain([0,100])
+      .range([heightLR,0]);
+    
+    // Axes
+    lrArea.append("g")
+      .attr("transform", `translate(0,${heightLR})`)
+      .call(d3.axisBottom(xScaleLR).ticks(5))
+      .append("text")
+      .attr("x", widthLR/2)
+      .attr("y", 35)
+      .style("text-anchor", "middle")
+      .style("fill", "#000")
+      .text("Heart Rate (BPM)");
+    
+    lrArea.append("g")
+      .call(d3.axisLeft(yScaleLR).ticks(5))
+      .append("text")
+      .attr("transform","rotate(-90)")
+      .attr("x", -heightLR/2)
+      .attr("y", -40)
+      .style("text-anchor", "middle")
+      .style("fill", "#000")
+      .text("Predicted Score (%)");
+    
+    // Single path for regression line (we only visualize HR on X axis here)
+    const regressionLine = lrArea.append("path")
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 2);
+    
+    const highlightCircle = lrArea.append("circle")
+      .attr("r", 5)
+      .attr("fill", "red");
+    
+    // -------------------- MATRIX HELPER FUNCTIONS (naive) --------------------
+    /** Matrix transpose */
+    function matTranspose(A) {
+      // A is an N x M array; return M x N
+      let rows = A.length, cols = A[0].length;
+      let T = Array.from({length: cols}, () => Array(rows).fill(0));
+      for (let i=0; i<rows; i++){
+        for (let j=0; j<cols; j++){
+          T[j][i] = A[i][j];
+        }
+      }
+      return T;
+    }
+    
+    /** Multiply matrix A (size p x q) by matrix B (size q x r) => p x r */
+    function matMul(A, B) {
+      let p = A.length,
+          q = A[0].length,
+          r = B[0].length;
+      let result = Array.from({length: p}, () => Array(r).fill(0));
+      for (let i=0; i<p; i++){
+        for (let j=0; j<r; j++){
+          for (let k=0; k<q; k++){
+            result[i][j] += A[i][k] * B[k][j];
+          }
+        }
+      }
+      return result;
+    }
+    
+    /** Invert a 3x3 matrix (naive approach, no checks for singular) */
+    function invert3x3(M) {
+      let a11 = M[0][0], a12 = M[0][1], a13 = M[0][2];
+      let a21 = M[1][0], a22 = M[1][1], a23 = M[1][2];
+      let a31 = M[2][0], a32 = M[2][1], a33 = M[2][2];
+    
+      let det = a11*(a22*a33 - a23*a32)
+              - a12*(a21*a33 - a23*a31)
+              + a13*(a21*a32 - a22*a31);
+    
+      if (Math.abs(det) < 1e-12) {
+        console.warn("Matrix is nearly singular. Using fallback identity.");
+        return [[1,0,0],[0,1,0],[0,0,1]];
+      }
+    
+      let invDet = 1 / det;
+    
+      // Adjugate / cofactor approach
+      let inv = [
+        [
+          (a22*a33 - a23*a32)*invDet,
+          (a13*a32 - a12*a33)*invDet,
+          (a12*a23 - a13*a22)*invDet,
+        ],
+        [
+          (a23*a31 - a21*a33)*invDet,
+          (a11*a33 - a13*a31)*invDet,
+          (a13*a21 - a11*a23)*invDet,
+        ],
+        [
+          (a21*a32 - a22*a31)*invDet,
+          (a12*a31 - a11*a32)*invDet,
+          (a11*a22 - a12*a21)*invDet,
+        ],
+      ];
+      return inv;
+    }
+    
+    // -------------------- MULTIPLE REGRESSION (HR, EDA) => Grade --------------------
+    d3.csv("merged_final_exam_data.csv").then(dataRows => {
+      // Build arrays of [1, HR, EDA] plus the Grade
+      let X = [];
+      let y = [];
+      let maxGrade = 0;
+    
+      dataRows.forEach(d => {
+        let hr  = +d.HR;
+        let eda = +d.EDA;
+        let grd = +d.Grade;
+    
+        // filter out invalid entries
+        if (!isNaN(hr) && !isNaN(eda) && !isNaN(grd)) {
+          X.push([1, hr, eda]);  // 1 => intercept
+          y.push([grd]);         // as a 2D col-vector
+          if (grd > maxGrade) {
+            maxGrade = grd;
+          }
+        }
+      });
+      lrMaxGrade = (maxGrade > 0)? maxGrade : 100;
+    
+      if (X.length < 3) {
+        console.warn("Not enough data for multiple regression. Using all 0.");
+        return;
+      }
+    
+      // Normal Equation: beta = (X^T X)^(-1) X^T y
+      // 1) XT = X^T
+      let XT = matTranspose(X);
+      // 2) XT_X = X^T X
+      let XT_X = matMul(XT, X);         // 3x3
+      // 3) (XT_X)^(-1)
+      let XT_X_inv = invert3x3(XT_X);   // also 3x3
+      // 4) XT_y = X^T y => 3x1
+      let XT_y = matMul(XT, y);
+      // 5) beta = (XT_X_inv) * (XT_y) => 3x1
+      let beta = matMul(XT_X_inv, XT_y); 
+      // beta = [[beta0], [beta1], [beta2]]
+    
+      beta0 = beta[0][0];  // intercept
+      beta1 = beta[1][0];  // slope for HR
+      beta2 = beta[2][0];  // slope for EDA
+    
+      console.log(`Multiple Regression: Grade = ${beta0.toFixed(3)} + (${beta1.toFixed(3)} * HR) + (${beta2.toFixed(3)} * EDA)`);
+      
+      // Once loaded, refresh the slider-based chart
+      updateSliders();
+    });
+    
+    // The formula to compute predicted Score
+    function computeScore(hrVal, edaVal) {
+      // raw predicted grade = beta0 + beta1*HR + beta2*EDA
+      let raw = beta0 + beta1*hrVal + beta2*edaVal;
+    
+      // scale to 0..100% relative to the maximum grade found in the dataset
+      let pct = (raw / lrMaxGrade) * 100;
+      if (pct > 100) pct = 100;
+      if (pct < 0)   pct = 0;
+      return pct;
+    }
+    
+    // Re-draw line for EDA in the sense that the user sets EDA, 
+    // but the x-axis is only HR. We'll show how predicted Score changes for HR=40..200
+    function updateRegressionChart(hrVal, edaVal) {
+      // sample HR from 40..200 in small steps
+      let lineData = d3.range(40, 201).map(h => ({
+        hr: h,
+        score: computeScore(h, edaVal)
+      }));
+    
+      const lrLine = d3.line()
+        .x(d => xScaleLR(d.hr))
+        .y(d => yScaleLR(d.score))
+        .curve(d3.curveMonotoneX);
+    
+      regressionLine
+        .datum(lineData)
+        .attr("d", lrLine);
+    
+      let currentScore = computeScore(hrVal, edaVal);
+      highlightCircle
+        .attr("cx", xScaleLR(hrVal))
+        .attr("cy", yScaleLR(currentScore));
+    }
+    
+    // Sliders -> text + line update
+    function updateSliders() {
+      const hrVal  = +document.getElementById("hr-slider").value;
+      const edaVal = +document.getElementById("eda-slider").value;
+    
+      document.getElementById("hr-value").textContent  = hrVal;
+      document.getElementById("eda-value").textContent = edaVal;
+    
+      const predicted = computeScore(hrVal, edaVal);
+      document.getElementById("predicted-score").textContent = predicted.toFixed(1);
+    
+      updateRegressionChart(hrVal, edaVal);
+    }
+    
+    // Hook slider events
+    document.getElementById("hr-slider").addEventListener("input", updateSliders);
+    document.getElementById("eda-slider").addEventListener("input", updateSliders);
+    
+    </script>
 
 
     <div id="tooltip" style="

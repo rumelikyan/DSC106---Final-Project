@@ -178,9 +178,12 @@
     <section id="heart-rate" class="white-section">
         <h2>Heart Rate Changes During the Exam</h2>
         <p>
-            <strong>About this visualization:</strong> This section focuses on heart rate (HR) data over time.
-            Each student’s HR is tracked to see how it fluctuates from the beginning to the end of an exam.
-            The aim is to observe potential stress peaks or dips in real time.
+          <strong>About this visualization:</strong> Our analysis of heart rate data shows that students 
+          beginning exams with lower heart rates generally score better, suggesting a calm baseline helps performance.
+           <strong>And</strong> our visualization reveals a surprising twist: peak heart rates occur mid-exam rather than at the anxious beginning. 
+           <strong>But</strong> this challenges the assumption that initial uncertainty causes maximum stress. <strong>Therefore,</strong> the observed decline in 
+           heart rate toward the exam's end indicates adaptation or stress recovery, highlighting that effectively managing mid-exam 
+           stress could be crucial to achieving higher scores.
         </p>
 
         <div class="exam-buttons">
@@ -216,9 +219,12 @@
     <section id="exam-performance" class="yellow-section">
         <h2>Exam Performance vs. Average Heart Rate</h2>
         <p>
-            <strong>About this visualization:</strong> This scatter plot compares each student’s average HR
-            to their exam score. Hover over points to see individual details. A high HR might suggest
-            heightened stress; by comparing it to exam scores, we can look for a correlation between stress and performance.
+            <strong>About this visualization:</strong> By visualizing students' heart rates during exams, we see that
+             sustained high stress often correlates with lower exam performance, suggesting stress may negatively impact
+              cognitive function. <strong>But</strong> our data also highlights individual exceptions—some students perform well despite elevated
+               heart rates—indicating stress isn't the sole predictor of outcomes. <strong>Therefore,</strong> while a higher heart rate usually
+                relates to poorer performance, our visualization emphasizes that stress impacts each student differently,
+                 reinforcing the complexity of exam performance.
         </p>
 
         <div id="scatterplots-container">
@@ -241,9 +247,12 @@
     <section id="eda-visualization" class="white-section">
         <h2>EDA (Sweat) Visualization</h2>
         <p>
-            <strong>About this visualization:</strong> EDA (Electrodermal Activity) tracks changes in skin conductance,
-            often associated with sweating. This timeline-based visualization shows how each student’s EDA changes
-            across the duration of an exam, potentially indicating moments of increased stress.
+            <strong>About this visualization:</strong> By visualizing students' electrodermal activity (EDA), 
+            we clearly observe stress through measurable sweat gland responses. <strong>But</strong> not all students display 
+            identical patterns or timing of these stress signals, suggesting individual differences. 
+            <strong>Therefore,</strong> although higher EDA generally correlates with heightened arousal, our visualizations highlight
+            that stress is multifaceted and manifests uniquely across students.
+
         </p>
 
         <div class="exam-buttons">
@@ -284,10 +293,13 @@
       
       <h2>Regression and Average HR & EDA Over Time</h2>
       <p>
-        <strong>About this visualization:</strong> By plotting average HR and EDA on the same chart, 
-        we can see how these two metrics evolve together over time. If both lines spike simultaneously, 
-        that might indicate an acute stress event shared among students. Also having the regression 
-        plotting both variables we can see what the predicted score would be.
+        <strong>About this visualization:</strong> By visualizing average heart rate (HR) 
+        and electrodermal activity (EDA) over time, we observe clear patterns of stress throughout the exams. 
+        <strong>And</strong> by incorporating a 2D polynomial regression model, we can effectively predict exam scores based on 
+        these stress signals. <strong>But</strong> the regression also reveals that higher stress indicators don't uniformly predict 
+        poor performance—some students manage higher HR and EDA levels without significant performance drops. 
+        <strong>Therefore,</strong> our visualization and regression emphasize that the connection between physiological stress and exam 
+        outcomes is nuanced, highlighting that stress alone does not define academic performance.
       </p>
       
       <!-- Flex container for two columns (left: combined chart & controls, right: regression) -->

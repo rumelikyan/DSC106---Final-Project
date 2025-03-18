@@ -580,58 +580,63 @@
             heartIsPlaying = true;
             stepHeart();
 
-            // When the user drags the slider, pause auto-play and jump to that time index
-            heartProgress.addEventListener("input", function(event) {
-                clearTimeout(visualizationTimeout);
-                heartTimeIndex = parseInt(event.target.value, 10);
-                heartProgressVal.textContent = heartTimeIndex;
-                drawHeartFrame(heartTimeIndex);
+            document.getElementById("heart-progress").addEventListener("input", function(event) {
+                clearTimeout(visualizationTimeout); // Stop any ongoing animation
+                heartTimeIndex = parseInt(event.target.value, 10); // Update index
+                document.getElementById("heart-progress-value").textContent = heartTimeIndex;
+                
+                drawHeartFrame(heartTimeIndex); // Redraw the frame at the new time index
+                
+                if (heartIsPlaying) {
+                    stepHeart(); // Resume from the new index if animation was playing
+                }
             });
+
         }
 
         function stepHeart() {
+            if (!heartIsPlaying) return; // Ensure animation runs only when it's playing
+
             const heartProgress = document.getElementById("heart-progress");
             let maxTime = parseInt(heartProgress.max, 10);
 
             if (heartTimeIndex < maxTime) {
                 drawHeartFrame(heartTimeIndex);
+                heartProgress.value = heartTimeIndex; // Sync progress bar with animation
+                document.getElementById("heart-progress-value").textContent = heartTimeIndex;
 
                 // --- NEW ANNOTATION CHECKS ---
+                let annotationText = "";
+                let shouldPause = false;
+
                 if (currentExam === "Midterm1" && heartTimeIndex === 48) {
-                    showAnnotation(`
-                        <strong>Minute 48 annotation (Midterm 1 Halfway):</strong><br>
-                        A lot of students experience a spike in heart rate
-                        around the halfway point of this midterm.
-                    `);
-                    return;
+                    annotationText = `<strong>Minute 48 annotation (Midterm 1 Halfway):</strong><br>
+                        A lot of students experience a spike in heart rate around the halfway point of this midterm.`;
+                    shouldPause = true;
                 }
                 if (currentExam === "Midterm2" && heartTimeIndex === 55) {
-                    showAnnotation(`
-                        <strong>Minute 55 annotation (Midterm 2):</strong><br>
-                        At this point, several students show an uptick in heart rate, 
-                        possibly indicating a tough set of questions causing added stress.
-                    `);
-                    return;
+                    annotationText = `<strong>Minute 55 annotation (Midterm 2):</strong><br>
+                        At this point, several students show an uptick in heart rate, possibly indicating a tough set of questions causing added stress.`;
+                    shouldPause = true;
                 }
                 if (currentExam === "Final" && heartTimeIndex === 10) {
-                    showAnnotation(`
-                        <strong>Minute 10 annotation (Final Exam):</strong><br>
-                        Interestingly, most students begin with a lower HR than the midterms, 
-                        and the lower average HR gets more evident later.
-                    `);
-                    return;
+                    annotationText = `<strong>Minute 10 annotation (Final Exam):</strong><br>
+                        Interestingly, most students begin with a lower HR than the midterms, and the lower average HR gets more evident later.`;
+                    shouldPause = true;
+                }
+                if (currentExam === "Final" && heartTimeIndex === 54) {
+                    annotationText = `<strong>Minute 54 annotation (Final Exam):</strong><br>
+                        The lower average HR is especially evident now that enough test duration has passed.`;
+                    shouldPause = true;
                 }
 
-                if (currentExam === "Final" && heartTimeIndex === 54) {
-                    showAnnotation(`
-                        <strong>Minute 54 annotation (Final Exam):</strong><br>
-                        The lower average HR is especially evident now that enough test duration has passed.
-                    `);
-                    return;
+                if (shouldPause) {
+                    showAnnotation(annotationText);
+                    return; // Stop animation until user clicks "Continue"
                 }
 
                 heartTimeIndex++;
-                visualizationTimeout = setTimeout(stepHeart, 250);
+                visualizationTimeout = setTimeout(stepHeart, 250); // Continue animation
             } else {
                 heartIsPlaying = false;
             }

@@ -201,7 +201,7 @@
 
 
         <div id="chart-container">
-            <svg id="heart-chart" width="600" height="300"></svg>
+            <svg id="heart-chart" width="600" height="100"></svg>
         </div>
 
         <div class="control-buttons">
@@ -778,7 +778,7 @@
             resetVisBtn.addEventListener("click", function () {
                 clearTimeout(visualizationTimeout);
                 d3.select("#heart-container").html(`<p>Select a dataset to begin visualization.</p>`);
-                d3.select("#chart-container").html(`<svg id="heart-chart" width="600" height="300"></svg>`);
+                d3.select("#chart-container").html(`<svg id="heart-chart" width="600" height="100"></svg>`);
                 document.getElementById("heart-progress-container").style.display = "none";
                 heartIsPlaying = false;
             });

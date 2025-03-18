@@ -631,9 +631,12 @@
                 }
 
                 if (shouldPause) {
-                    showAnnotation(annotationText);
-                    return; // Stop animation until user clicks "Continue"
+                    if (!document.querySelector(".annotation")) {
+                        showAnnotation(annotationText);
+                    }
+                    return; // Prevent multiple annotation pop-ups
                 }
+
 
                 heartTimeIndex++;
                 visualizationTimeout = setTimeout(stepHeart, 250); // Continue animation
@@ -646,22 +649,28 @@
             clearTimeout(visualizationTimeout);
             heartIsPlaying = false;
 
+            // Check if an annotation already exists
+            let existingAnnotation = d3.select(".annotation");
+            if (!existingAnnotation.empty()) return; // Prevent duplicate annotations
+
             const annotation = d3.select("#heart-container")
                 .append("div")
                 .attr("class", "annotation")
                 .style("position", "relative")
                 .html(`
                     ${htmlContent}
-                    <br><br><button id="continue-btn">Continue</button>
+                    <br><br>
+                    <button id="continue-btn">Continue</button>
                 `);
 
-            d3.select("#continue-btn").on("click", function() {
+            d3.select("#continue-btn").on("click", function () {
                 annotation.remove();
-                heartTimeIndex++;
+                heartTimeIndex++;  // Ensure it moves past the annotation point
                 heartIsPlaying = true;
                 stepHeart();
             });
         }
+
 
 
         function drawHeartFrame(t) {
@@ -819,6 +828,12 @@
         if (heartPlayBtn) {
             heartPlayBtn.addEventListener("click", function () {
                 if (!heartIsPlaying) {
+                    // If there's an annotation, remove it before resuming
+                    let annotation = document.querySelector(".annotation");
+                    if (annotation) {
+                        annotation.remove();
+                        heartTimeIndex++;  // Move past annotation point
+                    }
                     startHeartAnimation();
                 }
             });
@@ -1089,10 +1104,21 @@
             clearTimeout(edaAnimationTimeout);
             edaIsPlaying = false;
 
+            // Remove any existing EDA annotations (without touching heart annotations)
+            d3.selectAll(".annotation-eda").remove();
+
+            // Append a new EDA-specific annotation
             const annotation = d3.select("#eda-container")
                 .append("div")
-                .attr("class", "annotation")
-                .style("position", "relative")
+                .attr("class", "annotation-eda")
+                .style("text-align", "center")
+                .style("margin", "20px auto")
+                .style("width", "80%")
+                .style("background-color", "#fff3cd")
+                .style("border", "1px solid #ffeeba")
+                .style("border-radius", "4px")
+                .style("padding", "10px")
+                .style("box-shadow", "0 2px 4px rgba(0,0,0,0.2)")
                 .html(`
                     ${htmlContent}
                     <br><br>
@@ -1106,6 +1132,8 @@
                 stepEDA(); // resume
             });
         }
+
+
 
 
         function startEDAAnimation() {
@@ -1139,12 +1167,19 @@
 
         if (edaPlayBtn) {
             edaPlayBtn.addEventListener("click", () => {
-                // Only resume if the animation is not currently playing
                 if (!edaIsPlaying) {
+                    // If an annotation exists, remove it and move past its time point
+                    let annotation = document.querySelector(".annotation");
+                    if (annotation) {
+                        annotation.remove();
+                        edaTimeIndex++;  // Move past the annotation point
+                    }
                     startEDAAnimation();
                 }
             });
         }
+
+        
 
         // If user drags the slider, jump to that time index & re-draw, continue counting from there
         if (edaProgress) {

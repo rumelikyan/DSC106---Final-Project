@@ -326,3 +326,14 @@ section {
     position: relative;
     right: 350px;
   }
+  
+#key-takeaways {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(to right, #007bff, #0056b3);
+  color: white;
+  padding: 60px 20px;
+}
